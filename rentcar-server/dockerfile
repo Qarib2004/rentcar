@@ -1,21 +1,25 @@
-    FROM node:20 AS builder
+# Stage 1: Build
+FROM node:20 AS builder
+WORKDIR /app
 
-    WORKDIR /app
-    
-    COPY package.json yarn.lock ./
-    RUN yarn install --frozen-lockfile
-    
-    COPY . .
-    RUN yarn build
-    
-    FROM node:20
-    
-    WORKDIR /app
-    
-    COPY package.json yarn.lock ./
-    RUN yarn install --frozen-lockfile --production
-    
-    COPY --from=builder /app/dist ./dist
-    
-    CMD ["node", "dist/main.js"]
-    
+# Устанавливаем зависимости
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+# Копируем весь проект и билдим NestJS
+COPY . .
+RUN yarn build
+
+# Stage 2: Production
+FROM node:20
+WORKDIR /app
+
+# Устанавливаем только production зависимости
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production
+
+# Копируем билд из builder stage
+COPY --from=builder /app/dist ./dist
+
+# Устанавливаем увеличенный лимит памяти для Node.js
+CMD ["node", "--max-old-space-size=1024", "dist/main.js"]
