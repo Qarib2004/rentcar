@@ -24,6 +24,8 @@ export default () => ({
     broker: process.env.KAFKA_BROKER || 'localhost:9092',
     clientId: process.env.KAFKA_CLIENT_ID || 'car-rental-service',
     groupId: process.env.KAFKA_GROUP_ID || 'car-rental-group',
+    username: process.env.KAFKA_USERNAME,
+    password: process.env.KAFKA_PASSWORD, 
   },
 
   cloudinary: {

@@ -10,13 +10,25 @@ import type { RedisClientOptions } from 'redis';
     CacheModule.registerAsync<RedisClientOptions>({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        store: redisStore as unknown,
-        host: configService.get<string>('redis.host'),
-        port: configService.get<number>('redis.port'),
-        password: configService.get<string>('redis.password'),
-        ttl: 60 * 60,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
+
+        if (redisUrl) {
+          return {
+            store: redisStore as unknown,
+            url: redisUrl,
+            ttl: 60 * 60,
+          };
+        }
+
+        return {
+          store: redisStore as unknown,
+          host: configService.get<string>('REDIS_HOST') || 'localhost',
+          port: configService.get<number>('REDIS_PORT') || 6379,
+          password: configService.get<string>('REDIS_PASSWORD') || undefined,
+          ttl: 60 * 60,
+        };
+      },
       isGlobal: true,
     }),
   ],
