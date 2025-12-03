@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import Cookies from 'js-cookie'
-import { API_URL, STORAGE_KEYS, API_ENDPOINTS } from '@/lib/utils/constants'
+import { API_URL, API_ENDPOINTS, ROUTES, STORAGE_KEYS } from '@/lib/utils/constants'
+import { tokenManager } from '@/lib/utils/tokenManager'
+import { router } from '@/routes'
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -13,7 +14,7 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = Cookies.get(STORAGE_KEYS.ACCESS_TOKEN)
+    const token = tokenManager.getAccessToken()
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
@@ -37,7 +38,7 @@ api.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        const refreshToken = Cookies.get(STORAGE_KEYS.REFRESH_TOKEN)
+        const refreshToken = tokenManager.getRefreshToken()
         
         if (!refreshToken) {
           throw new Error('No refresh token')
@@ -51,7 +52,7 @@ api.interceptors.response.use(
 
         const { accessToken } = response.data
 
-        Cookies.set(STORAGE_KEYS.ACCESS_TOKEN, accessToken)
+        tokenManager.updateAccessToken(accessToken)
 
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`
@@ -59,12 +60,11 @@ api.interceptors.response.use(
 
         return api(originalRequest)
       } catch (refreshError) {
-        Cookies.remove(STORAGE_KEYS.ACCESS_TOKEN)
-        Cookies.remove(STORAGE_KEYS.REFRESH_TOKEN)
+        tokenManager.clear()
         localStorage.removeItem(STORAGE_KEYS.USER)
         
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
+        if (window.location.pathname !== ROUTES.LOGIN) {
+          router.navigate(ROUTES.LOGIN)
         }
         
         return Promise.reject(refreshError)

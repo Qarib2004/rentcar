@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import Cookies from 'js-cookie'
 import { User } from '@/types'
 import { STORAGE_KEYS } from '@/lib/utils/constants'
+import { tokenManager } from '@/lib/utils/tokenManager'
 
 interface AuthState {
   user: User | null
@@ -36,16 +36,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       setTokens: (accessToken, refreshToken) => {
-        Cookies.set(STORAGE_KEYS.ACCESS_TOKEN, accessToken, {
-          expires: 7, 
-          secure: true,
-          sameSite: 'strict',
-        })
-        Cookies.set(STORAGE_KEYS.REFRESH_TOKEN, refreshToken, {
-          expires: 30, 
-          secure: true,
-          sameSite: 'strict',
-        })
+        tokenManager.setTokens(accessToken, refreshToken)
       },
 
       login: (user, accessToken, refreshToken) => {
@@ -58,8 +49,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        Cookies.remove(STORAGE_KEYS.ACCESS_TOKEN)
-        Cookies.remove(STORAGE_KEYS.REFRESH_TOKEN)
+        tokenManager.clear()
         
         set({
           user: null,

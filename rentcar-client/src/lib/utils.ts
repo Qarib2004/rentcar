@@ -1,11 +1,10 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-
+import { API_URL } from '@/lib/utils/constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-
 
 export function formatPrice(price: number, currency: string = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
@@ -13,7 +12,6 @@ export function formatPrice(price: number, currency: string = 'USD'): string {
     currency,
   }).format(price)
 }
-
 
 export function formatDate(date: Date | string, format: 'short' | 'long' = 'short'): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date
@@ -35,7 +33,6 @@ export function formatDate(date: Date | string, format: 'short' | 'long' = 'shor
   }).format(dateObj)
 }
 
-
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
   delay: number
@@ -48,7 +45,6 @@ export function debounce<T extends (...args: any[]) => any>(
   }
 }
 
-
 export function getInitials(name: string): string {
   return name
     .split(' ')
@@ -58,14 +54,27 @@ export function getInitials(name: string): string {
     .slice(0, 2)
 }
 
-
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
 }
 
-
 export function truncate(str: string, length: number): string {
   if (str.length <= length) return str
   return str.slice(0, length) + '...'
+}
+
+const apiBase = API_URL?.replace(/\/api$/, '')
+const assetBase =
+  import.meta.env.VITE_ASSET_BASE_URL ||
+  apiBase ||
+  (typeof window !== 'undefined' ? window.location.origin : '')
+
+export function resolveImageUrl(imagePath?: string) {
+  if (!imagePath) return ''
+  if (/^https?:\/\//i.test(imagePath)) return imagePath
+  if (!assetBase) return imagePath
+
+  const sanitizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
+  return `${assetBase}${sanitizedPath}`
 }

@@ -7,6 +7,7 @@ import { QUERY_KEYS, ROUTES, TOAST_MESSAGES } from '@/lib/utils/constants'
 import type { LoginCredentials, RegisterData, User } from '@/types'
 import type { ForgotPasswordData, ResetPasswordData } from '@/types/api.types'
 import { socketClient } from '@/lib/api/socket'
+import { trackEvent, logError } from '@/lib/analytics'
 
 import { useEffect } from 'react'
 
@@ -48,10 +49,12 @@ export const useRegister = () => {
       navigate(ROUTES.HOME)
       
       socketClient.connect()
+      trackEvent('auth_register_success', { userId: response.user.id })
     },
     onError: (error: any) => {
       const message = error?.response?.data?.message || TOAST_MESSAGES.REGISTER_ERROR
       toast.error(message)
+      logError(error, { action: 'auth_register' })
     },
   })
 }
@@ -72,10 +75,12 @@ export const useLogin = () => {
       socketClient.connect()
       
       navigate(ROUTES.HOME)
+      trackEvent('auth_login_success', { userId: response.user.id })
     },
     onError: (error: any) => {
       const message = error?.response?.data?.message || TOAST_MESSAGES.LOGIN_ERROR
       toast.error(message)
+      logError(error, { action: 'auth_login' })
     },
   })
 }
@@ -96,12 +101,14 @@ export const useLogout = () => {
       socketClient.disconnect()
       
       navigate(ROUTES.LOGIN)
+      trackEvent('auth_logout')
     },
     onError: (error: any) => {
       logout()
       queryClient.clear()
       socketClient.disconnect()
       navigate(ROUTES.LOGIN)
+      logError(error, { action: 'auth_logout' })
     },
   })
 }

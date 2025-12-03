@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FuelType, TransmissionType } from '@prisma/client';
+import { CarStatus, FuelType, TransmissionType } from '@prisma/client';
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNumber,
@@ -18,6 +19,7 @@ export class CreateCarDto {
   @ApiProperty({ example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' })
   @IsUUID()
   categoryId: string;
+  
 
   @ApiProperty({ example: 'Toyota' })
   @IsString()
@@ -143,4 +145,26 @@ export class CreateCarDto {
   @IsArray()
   @IsString({ each: true })
   features?: string[];
+
+  @ApiProperty({ example: 'f5ef7dae-f1ae-409c-88f7-405d8215bd32' })
+@IsUUID()
+@IsOptional()
+ownerId?: string;
+
+@ApiProperty({ type: [String], required: false })
+@IsOptional()
+@IsArray()
+@IsString({ each: true })
+images?: string[];
+
+@ApiProperty({ enum: CarStatus, required: false })
+@IsOptional()
+@IsEnum(CarStatus)
+status?: CarStatus;
+
+@ApiProperty({ required: false })
+@IsOptional()
+@IsBoolean()
+isActive?: boolean;
+
 }

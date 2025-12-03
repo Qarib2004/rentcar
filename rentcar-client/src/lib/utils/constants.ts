@@ -10,6 +10,8 @@ export const STORAGE_KEYS = {
 
 export const ROUTES = {
   HOME: '/',
+  MyCARS:'/my-cars',
+  CREATE_CAR:'/create-car',
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
@@ -23,6 +25,7 @@ export const ROUTES = {
   CHAT: '/chat',
   DASHBOARD: '/dashboard',
   PAYMENT: '/payment',
+  CATEGORIES: '/categories',
   NOT_FOUND: '*',
 } as const
 
@@ -54,9 +57,9 @@ export const API_ENDPOINTS = {
   CAR_REVIEWS: (carId: string) => `/reviews/car/${carId}`,
   CREATE_REVIEW: '/reviews',
   
-  USERS: '/users',
-  USER_PROFILE: (id: string) => `/users/${id}`,
-  UPDATE_PROFILE: '/users/profile',
+  USERS: '/user',
+  USER_PROFILE: (id: string) => `/user/${id}`,
+  UPDATE_PROFILE: '/user/me',
   
   NOTIFICATIONS: '/notifications',
   MARK_AS_READ: (id: string) => `/notifications/${id}/read`,
@@ -67,6 +70,9 @@ export const API_ENDPOINTS = {
   
   STATISTICS: '/statistics',
   DASHBOARD_STATS: '/statistics/dashboard',
+  
+  CATEGORIES: '/categories',
+  CATEGORY_DETAILS: (id: string) => `/categories/${id}`,
 } as const
 
 export const CAR_CATEGORIES = [
@@ -152,6 +158,7 @@ export const QUERY_KEYS = {
   USER: ['user'],
   CARS: ['cars'],
   CAR_DETAILS: (id: string) => ['cars', id],
+  CATEGORIES: ['categories'],
   BOOKINGS: ['bookings'],
   BOOKING_DETAILS: (id: string) => ['bookings', id],
   REVIEWS: ['reviews'],

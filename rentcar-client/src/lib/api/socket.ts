@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client'
-import Cookies from 'js-cookie'
-import { WS_URL, STORAGE_KEYS } from '@/lib/utils/constants'
+import { WS_URL } from '@/lib/utils/constants'
+import { tokenManager } from '@/lib/utils/tokenManager'
 
 class SocketClient {
   private socket: Socket | null = null
@@ -12,7 +12,7 @@ class SocketClient {
       return this.socket
     }
 
-    const token = Cookies.get(STORAGE_KEYS.ACCESS_TOKEN)
+    const token = tokenManager.getAccessToken()
 
     this.socket = io(WS_URL, {
       auth: {
@@ -114,7 +114,7 @@ class SocketClient {
 
   reconnectWithToken(token: string) {
     this.disconnect()
-    Cookies.set(STORAGE_KEYS.ACCESS_TOKEN, token)
+    tokenManager.updateAccessToken(token)
     this.connect()
   }
 }
