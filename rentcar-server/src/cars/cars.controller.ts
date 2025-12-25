@@ -78,14 +78,24 @@ export class CarsController {
     );
   }
 
-  @Get(':id')
+  // @Get(':id')
+  // @Public()
+  // @ApiOperation({ summary: 'Get car by ID' })
+  // @ApiResponse({ status: 200, description: 'Car found' })
+  // @ApiResponse({ status: 404, description: 'Car not found' })
+  // async findOne(@Param('id') id: string) {
+  //   return this.carsService.findOne(id);
+  // }
+
+  @Get(':slug')
   @Public()
-  @ApiOperation({ summary: 'Get car by ID' })
+  @ApiOperation({ summary: 'Get car by slug' })
   @ApiResponse({ status: 200, description: 'Car found' })
   @ApiResponse({ status: 404, description: 'Car not found' })
-  async findOne(@Param('id') id: string) {
-    return this.carsService.findOne(id);
-  }
+findBySlug(@Param('slug') slug: string) {
+  return this.carsService.findOneBySlug(slug);
+}
+
 
   @Put(':id')
   @ApiBearerAuth()

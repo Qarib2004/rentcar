@@ -1,18 +1,24 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
+
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
   {
     variants: {
       variant: {
-        default: 'bg-blue-500 text-white hover:bg-blue-600',
-        secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300',
-        success: 'bg-green-500 text-white hover:bg-green-600',
-        warning: 'bg-yellow-500 text-white hover:bg-yellow-600',
-        danger: 'bg-red-500 text-white hover:bg-red-600',
-        outline: 'border border-gray-300 text-gray-700 hover:bg-gray-100',
+        default:
+          'border-transparent bg-gray-900 text-gray-50 hover:bg-gray-900/80',
+        secondary:
+          'border-transparent bg-gray-100 text-gray-900 hover:bg-gray-100/80',
+        success:
+          'border-transparent bg-green-100 text-green-700 hover:bg-green-100/80',
+        danger:
+          'border-transparent bg-red-100 text-red-700 hover:bg-red-100/80',
+        warning:
+          'border-transparent bg-orange-100 text-orange-700 hover:bg-orange-100/80',
+        outline: 'text-gray-950',
       },
     },
     defaultVariants: {

@@ -25,7 +25,7 @@ export class CloudinaryService {
         {
           folder,
           resource_type: 'image',
-          allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+          allowed_formats: ['jpg', 'jpeg', 'png', 'webp','avif'],
           transformation: [
             { width: 1200, height: 800, crop: 'limit' },
             { quality: 'auto' },

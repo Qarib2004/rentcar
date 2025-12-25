@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Menu, X, User, LogOut, Settings, Car } from 'lucide-react'
+import { Menu, X, User, LogOut, Settings, Car, ClipboardPlus, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useLogout } from '@/features/auth/hooks/useAuth'
@@ -14,17 +14,19 @@ export default function Header() {
   const { user, isAuthenticated } = useAuthStore()
   const { mutate: logout } = useLogout()
 
-  const baseNavigation = [
+  const publicNavigation = [
     { name: 'Home', href: ROUTES.HOME },
     { name: 'Cars', href: ROUTES.CARS },
-    { name: 'My Bookings', href: ROUTES.BOOKINGS },
-    { name: 'Chat', href: ROUTES.CHAT },
+    { name: 'About', href: ROUTES.ABOUT },
   ]
 
-  const navigation =
-    isAuthenticated && user?.role === UserRole.ADMIN
-      ? [...baseNavigation, { name: 'Categories', href: ROUTES.CATEGORIES }]
-      : baseNavigation
+  const privateNavigation = [
+    { name: 'My Bookings', href: ROUTES.BOOKINGS },
+  ]
+
+  const navigation = isAuthenticated 
+    ? [...publicNavigation, ...privateNavigation]
+    : publicNavigation
 
   const handleLogout = () => {
     logout()
@@ -42,7 +44,7 @@ export default function Header() {
           </div>
 
           <div className="hidden md:flex md:items-center md:space-x-8">
-            {isAuthenticated && navigation.map((item) => (
+            {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
@@ -59,6 +61,15 @@ export default function Header() {
                 <div className="hidden md:block">
                   <NotificationsDropdown />
                 </div>
+                {user?.role === UserRole.ADMIN && (
+                  <Link
+                    to={ROUTES.DASHBOARD}
+                    className="hidden md:flex items-center text-gray-700 hover:text-blue-500 transition-colors"
+                    title="Admin Panel"
+                  >
+                    <Settings className="h-6 w-6" />
+                  </Link>
+                )}
 
                 <div className="hidden md:block relative">
                   <button
@@ -88,6 +99,30 @@ export default function Header() {
                           >
                             <User className="mr-3 h-4 w-4" />
                             Profile
+                          </Link>
+                          <Link
+                            to={ROUTES.MyCARS}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                          >
+                            <Car className="mr-3 h-4 w-4" />
+                            My Cars
+                          </Link>
+                          <Link
+                            to={ROUTES.CREATE_CAR}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                          >
+                            <ClipboardPlus className="mr-3 h-4 w-4" />
+                            Create Car
+                          </Link>
+                          <Link
+                            to={ROUTES.CHAT}
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setIsProfileMenuOpen(false)}
+                          >
+                            <MessageCircle className="mr-3 h-4 w-4" />
+                            Chat
                           </Link>
                           <Link
                             to={ROUTES.SETTINGS}
@@ -138,18 +173,19 @@ export default function Header() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200">
             <div className="px-2 pt-2 pb-3 space-y-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              
               {isAuthenticated ? (
                 <>
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
                   <hr className="my-2" />
                   <Link
                     to={ROUTES.PROFILE}
@@ -157,6 +193,27 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Profile
+                  </Link>
+                  <Link
+                    to={ROUTES.MyCARS}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    My Cars
+                  </Link>
+                  <Link
+                    to={ROUTES.CREATE_CAR}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Create Car
+                  </Link>
+                  <Link
+                    to={ROUTES.CHAT}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Chat
                   </Link>
                   <Link
                     to={ROUTES.SETTINGS}
@@ -176,22 +233,25 @@ export default function Header() {
                   </button>
                 </>
               ) : (
-                <div className="space-y-2">
-                  <Link
-                    to={ROUTES.LOGIN}
-                    className="block w-full"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Button variant="ghost" className="w-full">Login</Button>
-                  </Link>
-                  <Link
-                    to={ROUTES.REGISTER}
-                    className="block w-full"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Button className="w-full">Sign up</Button>
-                  </Link>
-                </div>
+                <>
+                  <hr className="my-2" />
+                  <div className="space-y-2 px-3">
+                    <Link
+                      to={ROUTES.LOGIN}
+                      className="block w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Button variant="ghost" className="w-full">Login</Button>
+                    </Link>
+                    <Link
+                      to={ROUTES.REGISTER}
+                      className="block w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Button className="w-full">Sign up</Button>
+                    </Link>
+                  </div>
+                </>
               )}
             </div>
           </div>

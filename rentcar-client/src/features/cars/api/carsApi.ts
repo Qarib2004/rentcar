@@ -21,8 +21,8 @@ export const getCars = async (params?: CarsQueryParams): Promise<PaginatedRespon
   return apiClient.get(`${API_ENDPOINTS.CARS}?${queryParams.toString()}`)
 }
 
-export const getCarById = async (id: string): Promise<Car> => {
-  return apiClient.get(API_ENDPOINTS.CAR_DETAILS(id))
+export const getCarById = async (slug: string): Promise<Car> => {
+  return apiClient.get(API_ENDPOINTS.CAR_DETAILS(slug))
 }
 
 export const getMyCars = async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<Car>> => {

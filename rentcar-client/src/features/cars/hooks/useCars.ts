@@ -24,11 +24,11 @@ export function useCars(params?: CarsQueryParams) {
     staleTime: 5 * 60 * 1000,
   })
 }
-export function useCarDetails(id: string) {
+export function useCarDetails(slug: string) {
   return useQuery({
-    queryKey: QUERY_KEYS.CAR_DETAILS(id),
-    queryFn: () => carsApi.getCarById(id),
-    enabled: !!id,
+    queryKey: QUERY_KEYS.CAR_DETAILS(slug),
+    queryFn: () => carsApi.getCarById(slug),
+    enabled: !!slug,
   })
 }
 
@@ -112,7 +112,7 @@ export function useCreateCar() {
     onSuccess: (car) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CARS })
       toast.success('Car created successfully!')
-      navigate(`/cars/${car.id}`)
+      navigate(`/cars/${car.slug}`)
     },
     onError: (error: any) => {
       const message = error?.response?.data?.message || 'Failed to create car'
@@ -154,14 +154,35 @@ export function useDeleteCarImage(id: string) {
   })
 }
 
-export function useUpdateCarStatus(id: string) {
+export function useUpdateCarStatusDynamic() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (status: string) => carsApi.updateCarStatus(id, status),
+    mutationFn: ({ carId, status }: { carId: string; status: string }) => 
+      carsApi.updateCarStatus(carId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CARS })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CAR_DETAILS(id) })
+      toast.success('Car status updated!')
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || 'Failed to update status'
+      toast.error(message)
+    },
+  })
+}
+
+
+
+
+export function useUpdateCarStatus() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ carId, status }: { carId: string; status: string }) => 
+      carsApi.updateCarStatus(carId, status),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CARS })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CAR_DETAILS(variables.carId) })
       toast.success('Car status updated!')
     },
     onError: (error: any) => {

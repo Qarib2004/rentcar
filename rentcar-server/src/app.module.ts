@@ -20,6 +20,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ChatModule } from './chat/chat.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { WebSocketModule } from './websocket/websocket.module';
+import { OwnerRequestsModule } from './owner-requests/owner-request.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { WebSocketModule } from './websocket/websocket.module';
     ChatModule,
     StatisticsModule,
     WebSocketModule,
+    OwnerRequestsModule
   ],
 })
 export class AppModule {}

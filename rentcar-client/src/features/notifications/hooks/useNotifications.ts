@@ -19,6 +19,19 @@ export function useUnreadCount() {
   })
 }
 
+export function useMessageNotifications(page: number = 1, limit: number = 10) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.MESSAGE_NOTIFICATIONS, page, limit],
+    queryFn: () => notificationsApi.getMessageNotifications(page, limit),
+    refetchInterval: 15000, 
+  })
+}
+
+
+
+
+
+
 export function useMarkAsRead() {
   const queryClient = useQueryClient()
 
@@ -30,6 +43,7 @@ export function useMarkAsRead() {
   })
 }
 
+
 export function useMarkAllAsRead() {
   const queryClient = useQueryClient()
 
@@ -37,6 +51,8 @@ export function useMarkAllAsRead() {
     mutationFn: notificationsApi.markAllAsRead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATION_UNREAD })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.MESSAGE_NOTIFICATIONS })
       toast.success('All notifications marked as read')
     },
     onError: (error: any) => {
@@ -45,7 +61,6 @@ export function useMarkAllAsRead() {
     },
   })
 }
-
 export function useDeleteNotification() {
   const queryClient = useQueryClient()
 

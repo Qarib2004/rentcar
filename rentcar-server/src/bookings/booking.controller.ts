@@ -129,6 +129,15 @@ export class BookingsController {
     return this.bookingsService.confirmBooking(id, userId, userRole);
   }
 
+  @Patch(':id/activate')
+async activateBooking(
+  @Param('id') id: string,
+  @CurrentUser('id') userId: string,
+  @CurrentUser('role') userRole: UserRole,
+) {
+  return this.bookingsService.activateBooking(id, userId, userRole);
+}
+
   @Patch(':id/cancel')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel booking' })

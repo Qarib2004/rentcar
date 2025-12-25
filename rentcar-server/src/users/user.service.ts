@@ -9,6 +9,7 @@ import { UserPublicData } from './interace/user-public';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import argon2 from 'argon2';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -131,6 +132,24 @@ export class UserService {
     return updatedUser;
   }
 
+
+  async deleteUser(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+  
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+  
+    await this.prisma.user.delete({
+      where: { id },
+    });
+  
+    return { message: 'User deleted successfully' };
+  }
+  
+
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -228,4 +247,71 @@ export class UserService {
       totalReviews: stats._count.reviews,
     };
   }
+
+
+
+  async updateUserRole(userId: string, role: UserRole) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+  
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+  
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { role },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        updatedAt: true,
+      },
+    });
+  
+    return {
+      message: `User role updated to ${role} successfully`,
+      user: updatedUser,
+    };
+  }
+  
+  async toggleUserStatus(userId: string, isActive: boolean) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+  
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+  
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isActive: true,
+        updatedAt: true,
+      },
+    });
+  
+    return {
+      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
+      user: updatedUser,
+    };
+  }
+  
 }
+
+
+
+
+
+
+
+

@@ -1,5 +1,5 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import Header from '@/components/layout/Header'
 import {
   useBookingDetails,
   useCancelBooking,
@@ -12,6 +12,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Calendar,
   MapPin,
   Car,
@@ -19,17 +29,18 @@ import {
   Clock,
   ArrowLeft,
   XCircle,
+  CheckCircle,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { formatPrice, resolveImageUrl } from '@/lib/utils'
 import { ROUTES } from '@/lib/utils/constants'
-import { useState } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { UserRole } from '@/types'
 
 export function BookingDetails() {
   const { id } = useParams<{ id: string }>()
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
   const { data: booking, isLoading } = useBookingDetails(id!)
   const { mutate: cancelBooking, isPending: isCancelling } = useCancelBooking()
   const { mutate: confirmBooking, isPending: isConfirming } = useConfirmBooking()
@@ -62,17 +73,32 @@ export function BookingDetails() {
     booking &&
     ['PENDING', 'CONFIRMED'].includes(booking.status) &&
     (isBookingOwner || isCarOwner || isAdmin)
-  const canReview = booking && booking.status === 'COMPLETED' && !booking.review && isBookingOwner
-  const canConfirm = booking && booking.status === 'PENDING' && (isCarOwner || isAdmin)
-  const canComplete = booking && booking.status === 'CONFIRMED' && (isCarOwner || isAdmin)
+  
+  const canReview = 
+    booking && 
+    booking.status === 'COMPLETED' && 
+    !booking.review && 
+    isBookingOwner
+  
+  const canActivate = 
+    booking && 
+    booking.status === 'CONFIRMED' && 
+    (isCarOwner || isAdmin)
+  
+  const canComplete =
+    booking &&
+    (booking.status === 'ACTIVE' || booking.status === 'CONFIRMED') &&
+    (isCarOwner || isAdmin)
 
-  const handleCancel = () => {
-    if (window.confirm('Are you sure you want to cancel this booking?')) {
-      cancelBooking(id!)
-    }
+  const handleCancelConfirm = () => {
+    cancelBooking(id!, {
+      onSuccess: () => {
+        setShowCancelDialog(false)
+      }
+    })
   }
 
-  const handleConfirm = () => {
+  const handleActivate = () => {
     confirmBooking(id!)
   }
 
@@ -83,7 +109,6 @@ export function BookingDetails() {
   if (isLoading) {
     return (
       <>
-        <Header />
         <div className="min-h-screen bg-gray-50 p-8">
           <div className="max-w-4xl mx-auto space-y-6">
             <Skeleton className="h-64 w-full" />
@@ -97,7 +122,6 @@ export function BookingDetails() {
   if (!booking) {
     return (
       <>
-        <Header />
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900">Booking not found</h2>
@@ -115,7 +139,6 @@ export function BookingDetails() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link to={ROUTES.BOOKINGS}>
@@ -162,7 +185,6 @@ export function BookingDetails() {
                       <p className="text-gray-500">{booking.car?.year}</p>
                       <Link to={`/cars/${booking.car?.id}`} className="mt-2 inline-block">
                         <Button variant="link" className="px-0">
-                          View Car Details
                         </Button>
                       </Link>
                     </div>
@@ -246,7 +268,6 @@ export function BookingDetails() {
                   ) : (
                     <ReviewForm
                       bookingId={booking.id}
-                      carId={booking.carId}
                       onSuccess={() => setShowReviewForm(false)}
                     />
                   )}
@@ -285,14 +306,14 @@ export function BookingDetails() {
               </Card>
 
               <div className="space-y-3">
-                {canConfirm && (
+                {canActivate && (
                   <Button
                     className="w-full"
-                    onClick={handleConfirm}
+                    onClick={handleActivate}
                     disabled={isConfirming}
-                    isLoading={isConfirming}
                   >
-                    Confirm Booking
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {isConfirming ? 'Activating...' : 'Activate Booking'}
                   </Button>
                 )}
 
@@ -302,9 +323,8 @@ export function BookingDetails() {
                     className="w-full"
                     onClick={handleComplete}
                     disabled={isCompleting}
-                    isLoading={isCompleting}
                   >
-                    Mark as Completed
+                    {isCompleting ? 'Completing...' : 'Mark as Completed'}
                   </Button>
                 )}
 
@@ -312,9 +332,8 @@ export function BookingDetails() {
                   <Button
                     variant="destructive"
                     className="w-full"
-                    onClick={handleCancel}
+                    onClick={() => setShowCancelDialog(true)}
                     disabled={isCancelling}
-                    isLoading={isCancelling}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
                     Cancel Booking
@@ -325,6 +344,29 @@ export function BookingDetails() {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this booking? This action cannot be undone and you may be subject to cancellation fees.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>
+              No, Keep Booking
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelConfirm}
+              disabled={isCancelling}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isCancelling ? 'Cancelling...' : 'Yes, Cancel Booking'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

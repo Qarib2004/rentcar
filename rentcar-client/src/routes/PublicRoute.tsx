@@ -1,4 +1,3 @@
-// src/routes/PublicRoute.tsx
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { ROUTES } from '@/lib/utils/constants'

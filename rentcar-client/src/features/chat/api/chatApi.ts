@@ -22,3 +22,8 @@ export const sendMessage = async (data: SendMessageData): Promise<Message> => {
 export const markMessagesAsRead = async (chatRoomId: string): Promise<{ message: string }> => {
   return apiClient.patch(`${API_ENDPOINTS.CHAT}/rooms/${chatRoomId}/read`)
 }
+
+export async function createChatRoom(data: { recipientId: string }) {
+  const response = await apiClient.post('/chat/rooms', data)
+  return response.data
+}

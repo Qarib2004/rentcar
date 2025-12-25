@@ -24,6 +24,7 @@ export const checkCarAvailability = async (
 
 export const createBooking = async (data: CreateBookingData): Promise<Booking> => {
   return apiClient.post(API_ENDPOINTS.CREATE_BOOKING, data)
+  console.log('Creating booking with data:', data)
 }
 
 export const getAllBookings = async (params?: BookingsQueryParams): Promise<PaginatedResponse<Booking>> => {

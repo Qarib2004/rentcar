@@ -1,4 +1,3 @@
-// src/pages/ResetPassword.tsx
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useResetPassword } from '@/features/auth/hooks/useAuth'
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { ROUTES } from '@/lib/utils/constants'
 
 interface FormData {
-  password: string
+  newPassword: string
   confirmPassword: string
 }
 
@@ -22,7 +21,7 @@ export default function ResetPassword() {
   const token = searchParams.get('token')
   
   const [formData, setFormData] = useState<FormData>({
-    password: '',
+    newPassword: '',
     confirmPassword: '',
   })
   const [errors, setErrors] = useState<FormErrors>({})
@@ -37,15 +36,15 @@ export default function ResetPassword() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
 
-    if (!formData.password) {
+    if (!formData.newPassword) {
       newErrors.password = 'Password is required'
-    } else if (formData.password.length < 6) {
+    } else if (formData.newPassword.length < 6) {
       newErrors.password = 'Password must be at least 6 characters'
     }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password'
-    } else if (formData.password !== formData.confirmPassword) {
+    } else if (formData.newPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
 
@@ -63,7 +62,7 @@ export default function ResetPassword() {
     if (validateForm()) {
       resetPassword({
         token,
-        password: formData.password,
+        newPassword: formData.newPassword,
       })
     }
   }
@@ -111,7 +110,7 @@ export default function ResetPassword() {
                 type="password"
                 autoComplete="new-password"
                 placeholder="••••••••"
-                value={formData.password}
+                value={formData.newPassword}
                 onChange={handleChange}
                 error={errors.password}
                 disabled={isPending}

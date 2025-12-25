@@ -1,252 +1,306 @@
 import { useState } from 'react'
-import Header from '@/components/layout/Header'
-import { useDashboardStats, useBookingStats, useCarStats } from '@/features/statistics/hooks/useStatistics'
+import AdminLayout from '@/components/layout/AdminLayout'
+import {
+  useCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+} from '@/features/cars/hooks/useCars'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { 
-  TrendingUp, 
-  Car, 
-  Users, 
-  DollarSign, 
-  Calendar,
-  CheckCircle,
-  XCircle,
-  Clock
+  Plus,
+  Edit,
+  Trash2,
+  Tag
 } from 'lucide-react'
-import { formatPrice } from '@/lib/utils'
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { useAuthStore } from '@/store/useAuthStore'
+import { UserRole, type Category } from '@/types'
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+
+const initialCategoryForm = {
+  name: '',
+  slug: '',
+  description: '',
+  icon: '',
+}
+
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
 
 export function Dashboard() {
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' })
-  
-  const { data: dashboardStats, isLoading: dashboardLoading } = useDashboardStats()
-  const { data: bookingStats, isLoading: bookingLoading } = useBookingStats(dateRange.startDate, dateRange.endDate)
-  const { data: carStats, isLoading: carLoading } = useCarStats()
+  const { user } = useAuthStore()
+  const isAdmin = user?.role === UserRole.ADMIN
 
-  const StatCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
-    trend, 
-    color = 'blue' 
-  }: { 
-    title: string
-    value: string | number
-    icon: any
-    trend?: string
-    color?: string
-  }) => (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">{title}</p>
-            <p className="text-2xl font-bold">{value}</p>
-            {trend && (
-              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                {trend}
-              </p>
-            )}
-          </div>
-          <div className={`p-3 rounded-full bg-${color}-100`}>
-            <Icon className={`w-6 h-6 text-${color}-600`} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+  
+
+
+  const { data: categories, isLoading: categoriesLoading } = useCategories()
+  const { mutate: createCategory, isPending: isCreating } = useCreateCategory()
+  const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory()
+  const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory()
+
+  const [categoryFormValues, setCategoryFormValues] = useState(initialCategoryForm)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const isCategoryBusy = isCreating || isUpdating || isDeleting
+
+  const handleCategoryInputChange = (field: keyof typeof initialCategoryForm, value: string) => {
+    setCategoryFormValues((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'name' && !slugManuallyEdited && !editingCategory
+        ? { slug: slugify(value) }
+        : {}),
+    }))
+  }
+
+  const handleSlugChange = (value: string) => {
+    setSlugManuallyEdited(true)
+    setCategoryFormValues((prev) => ({ ...prev, slug: slugify(value) }))
+  }
+
+  const resetCategoryForm = () => {
+    setCategoryFormValues(initialCategoryForm)
+    setEditingCategory(null)
+    setSlugManuallyEdited(false)
+    setIsDialogOpen(false)
+  }
+
+  const handleCategorySubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!isAdmin) return
+
+    const payload = {
+      name: categoryFormValues.name.trim(),
+      slug: categoryFormValues.slug.trim(),
+      description: categoryFormValues.description?.trim() || undefined,
+      icon: categoryFormValues.icon?.trim() || undefined,
+    }
+
+    if (editingCategory) {
+      updateCategory(
+        { id: editingCategory.id, data: payload },
+        {
+          onSuccess: resetCategoryForm,
+        }
+      )
+      return
+    }
+
+    createCategory(payload, {
+      onSuccess: resetCategoryForm,
+    })
+  }
+
+  const handleEditCategory = (category: Category) => {
+    setEditingCategory(category)
+    setCategoryFormValues({
+      name: category.name,
+      slug: category.slug,
+      description: category.description || '',
+      icon: category.icon || '',
+    })
+    setSlugManuallyEdited(true)
+    setIsDialogOpen(true)
+  }
+
+  const handleDeleteCategory = (category: Category) => {
+    if (!isAdmin) return
+    const confirmed = window.confirm(
+      `Delete category "${category.name}"? This action cannot be undone.`
+    )
+    if (!confirmed) return
+
+    deleteCategory(category.id, {
+      onSuccess: () => {
+        if (editingCategory?.id === category.id) {
+          resetCategoryForm()
+        }
+      },
+    })
+  }
+
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Overview of your platform statistics</p>
-          </div>
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {dashboardLoading ? (
-              <>
-                {[...Array(4)].map((_, i) => (
-                  <Card key={i}>
-                    <CardContent className="p-6">
-                      <Skeleton className="h-20 w-full" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </>
-            ) : dashboardStats ? (
-              <>
-                <StatCard
-                  title="Total Revenue"
-                  value={formatPrice(dashboardStats.totalRevenue)}
-                  icon={DollarSign}
-                  trend="+12.5% from last month"
-                  color="green"
-                />
-                <StatCard
-                  title="Total Bookings"
-                  value={dashboardStats.totalBookings}
-                  icon={Calendar}
-                  trend="+8.2% from last month"
-                  color="blue"
-                />
-                <StatCard
-                  title="Available Cars"
-                  value={`${dashboardStats.availableCars}/${dashboardStats.totalCars}`}
-                  icon={Car}
-                  color="purple"
-                />
-                <StatCard
-                  title="Total Users"
-                  value={dashboardStats.totalUsers}
-                  icon={Users}
-                  trend="+5 new this week"
-                  color="orange"
-                />
-              </>
-            ) : null}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card>
+          {isAdmin && (
+            <Card className="mb-8">
               <CardHeader>
-                <CardTitle>Booking Status</CardTitle>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Tag className="w-5 h-5" />
+                      Category Management
+                    </CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">Manage car categories</p>
+                  </div>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button onClick={() => {
+                        resetCategoryForm()
+                        setIsDialogOpen(true)
+                      }}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Category
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingCategory ? 'Edit Category' : 'Create New Category'}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {editingCategory
+                            ? `Updating "${editingCategory.name}"`
+                            : 'Add a new category for grouping cars.'}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleCategorySubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Name</Label>
+                          <Input
+                            id="name"
+                            value={categoryFormValues.name}
+                            onChange={(e) => handleCategoryInputChange('name', e.target.value)}
+                            placeholder="e.g. Electric"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="slug">Slug</Label>
+                          <Input
+                            id="slug"
+                            value={categoryFormValues.slug}
+                            onChange={(e) => handleSlugChange(e.target.value)}
+                            placeholder="electric"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="icon">Icon (optional)</Label>
+                          <Input
+                            id="icon"
+                            value={categoryFormValues.icon}
+                            onChange={(e) => handleCategoryInputChange('icon', e.target.value)}
+                            placeholder="lucide-electric"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="description">Description</Label>
+                          <textarea
+                            id="description"
+                            value={categoryFormValues.description}
+                            onChange={(e) => handleCategoryInputChange('description', e.target.value)}
+                            className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                            rows={3}
+                            placeholder="Short description of the category"
+                          />
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                          <Button type="submit" disabled={isCategoryBusy} className="flex-1">
+                            {editingCategory ? 'Update Category' : 'Create Category'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={resetCategoryForm}
+                            disabled={isCategoryBusy}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent>
-                {bookingLoading ? (
-                  <Skeleton className="h-64 w-full" />
-                ) : bookingStats?.bookingsByStatus ? (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={bookingStats.bookingsByStatus}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={(entry: any) => `${entry.status}: ${entry.count}`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="count"
-                        nameKey="status"
+                {categoriesLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : categories && categories.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {categories.map((category) => (
+                      <div
+                        key={category.id}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
                       >
-                        {bookingStats.bookingsByStatus.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-gray-500 text-center py-8">No data available</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue Trend</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {bookingLoading ? (
-                  <Skeleton className="h-64 w-full" />
-                ) : bookingStats?.revenueByMonth ? (
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={bookingStats.revenueByMonth}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <p className="text-gray-500 text-center py-8">No data available</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Popular Cars</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {carLoading ? (
-                <div className="space-y-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
-              ) : carStats?.popularCars && carStats.popularCars.length > 0 ? (
-                <div className="space-y-3">
-                  {carStats.popularCars.map((car, index) => (
-                    <div key={car.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold text-gray-400">#{index + 1}</span>
-                        <div>
-                          <p className="font-semibold">{car.brand} {car.model}</p>
-                          <p className="text-sm text-gray-500">{car.bookingsCount} bookings</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">{formatPrice(car.revenue)}</p>
-                        <p className="text-xs text-gray-500">Revenue</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-8">No data available</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {dashboardStats?.recentBookings && dashboardStats.recentBookings.length > 0 && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Recent Bookings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {dashboardStats.recentBookings.slice(0, 5).map((booking: any) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 bg-blue-100 rounded-full">
-                          <Calendar className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold">{booking.car?.brand} {booking.car?.model}</p>
-                          <p className="text-sm text-gray-500">
-                            {booking.user?.firstName} {booking.user?.lastName}
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">{category.name}</p>
+                          <p className="text-xs text-gray-500">/{category.slug}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {category._count?.cars ?? 0} cars
                           </p>
                         </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditCategory(category)}
+                            disabled={isCategoryBusy}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteCategory(category)}
+                            disabled={isCategoryBusy}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={
-                          booking.status === 'CONFIRMED' ? 'success' :
-                          booking.status === 'PENDING' ? 'warning' :
-                          booking.status === 'COMPLETED' ? 'secondary' : 'danger'
-                        }>
-                          {booking.status}
-                        </Badge>
-                        <p className="font-bold">{formatPrice(Number(booking.totalPrice))}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Tag className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500">No categories yet</p>
+                    <p className="text-sm text-gray-400 mt-1">Create your first category to get started</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
+
+         
+
+         
+
+         
         </div>
-      </div>
-    </>
+    
+    </AdminLayout>
   )
 }

@@ -1,21 +1,100 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../databases/prisma.service';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { KafkaProducerService } from '../kafka/kafka-producer.service';
-import { WebSocketGateway } from '../websocket/websocket.gateway';
+import { PrismaService } from 'src/databases/prisma.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class ChatService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly kafkaProducer: KafkaProducerService,
-    private readonly websocketGateway: WebSocketGateway,
+  constructor(private prisma: PrismaService,
+    private notificationsService: NotificationsService,
   ) {}
+
+  async getMyChatRooms(userId: string) {
+    const rooms = await this.prisma.chatRoom.findMany({
+      where: {
+        OR: [
+          { userId1: userId },
+          { userId2: userId },
+          { booking: { userId: userId } },
+          { booking: { car: { ownerId: userId } } },
+        ],
+      },
+      include: {
+        booking: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              },
+            },
+            car: {
+              include: {
+                owner: {
+                  select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        user1: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        user2: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        messages: {
+          take: 1,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            sender: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            messages: {
+              where: {
+                isRead: false,
+                senderId: { not: userId },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return rooms;
+  }
 
   async getOrCreateChatRoom(bookingId: string, userId: string) {
     const booking = await this.prisma.booking.findUnique({
@@ -34,66 +113,12 @@ export class ChatService {
       throw new NotFoundException('Booking not found');
     }
 
-    if (booking.userId !== userId && booking.car.ownerId !== userId) {
-      throw new ForbiddenException(
-        'You do not have permission to access this chat',
-      );
+    if (booking && booking.userId !== userId && booking.car?.ownerId !== userId) {
+      throw new ForbiddenException('Access denied');
     }
 
     let chatRoom = await this.prisma.chatRoom.findUnique({
       where: { bookingId },
-      include: {
-        messages: {
-          include: {
-            sender: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-      },
-    });
-
-    if (!chatRoom) {
-      chatRoom = await this.prisma.chatRoom.create({
-        data: {
-          bookingId,
-        },
-        include: {
-          messages: {
-            include: {
-              sender: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  avatar: true,
-                },
-              },
-            },
-            orderBy: {
-              createdAt: 'asc',
-            },
-          },
-        },
-      });
-    }
-
-    return chatRoom;
-  }
-
-  async createMessage(userId: string, createMessageDto: CreateMessageDto) {
-    const { chatRoomId, content } = createMessageDto;
-
-    const chatRoom = await this.prisma.chatRoom.findUnique({
-      where: { id: chatRoomId },
       include: {
         booking: {
           include: {
@@ -105,6 +130,48 @@ export class ChatService {
             },
           },
         },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        },
+      },
+    });
+
+    if (!chatRoom) {
+      chatRoom = await this.prisma.chatRoom.create({
+        data: {
+          bookingId,
+        },
+        include: {
+          booking: {
+            include: {
+              user: true,
+              car: {
+                include: {
+                  owner: true,
+                },
+              },
+            },
+          },
+          messages: true,
+        },
+      });
+    }
+
+    return chatRoom;
+  }
+
+  async getMessages(chatRoomId: string, userId: string) {
+    const chatRoom = await this.prisma.chatRoom.findUnique({
+      where: { id: chatRoomId },
+      include: {
+        booking: {
+          include: {
+            car: true,
+          },
+        },
+        user1: true,
+        user2: true,
       },
     });
 
@@ -112,11 +179,61 @@ export class ChatService {
       throw new NotFoundException('Chat room not found');
     }
 
-    const booking = chatRoom.booking;
-    if (booking.userId !== userId && booking.car.ownerId !== userId) {
-      throw new ForbiddenException(
-        'You do not have permission to send messages in this chat',
-      );
+    const hasAccess =
+      chatRoom.userId1 === userId ||
+      chatRoom.userId2 === userId ||
+      (chatRoom.booking && 
+        (chatRoom.booking.userId === userId || chatRoom.booking.car?.ownerId === userId));
+
+    if (!hasAccess) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const messages = await this.prisma.message.findMany({
+      where: { chatRoomId },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return messages;
+  }
+
+  async createMessage(userId: string, createMessageDto: CreateMessageDto) {
+    const { chatRoomId, content } = createMessageDto;
+
+    const chatRoom = await this.prisma.chatRoom.findUnique({
+      where: { id: chatRoomId },
+      include: {
+        booking: {
+          include: {
+            car: true,
+          },
+        },
+      },
+    });
+
+    if (!chatRoom) {
+      throw new NotFoundException('Chat room not found');
+    }
+
+    const hasAccess =
+      chatRoom.userId1 === userId ||
+      chatRoom.userId2 === userId ||
+      (chatRoom.booking && 
+        (chatRoom.booking.userId === userId || chatRoom.booking.car?.ownerId === userId));
+
+    if (!hasAccess) {
+      throw new ForbiddenException('Access denied');
     }
 
     const message = await this.prisma.message.create({
@@ -129,6 +246,7 @@ export class ChatService {
         sender: {
           select: {
             id: true,
+            email: true,
             firstName: true,
             lastName: true,
             avatar: true,
@@ -137,66 +255,35 @@ export class ChatService {
       },
     });
 
-    const recipientId =
-      booking.userId === userId ? booking.car.ownerId : booking.userId;
-
-    await this.kafkaProducer.sendChatMessage({
-      messageId: message.id,
-      chatRoomId,
-      senderId: userId,
-      recipientId,
-      content,
+    await this.prisma.chatRoom.update({
+      where: { id: chatRoomId },
+      data: { updatedAt: new Date() },
     });
 
-    this.websocketGateway.sendMessageToUser(recipientId, message);
+    let recipientId: string | null = null;
+    let senderName = `${message.sender.firstName} ${message.sender.lastName}`;
+  
+    if (chatRoom.bookingId && chatRoom.booking) {
+      recipientId = chatRoom.booking.userId === userId 
+        ? chatRoom.booking.car?.ownerId ?? null
+        : chatRoom.booking.userId;
+    } else {
+      recipientId = chatRoom.userId1 === userId 
+        ? chatRoom.userId2 
+        : chatRoom.userId1;
+    }
+  
+    if (recipientId) {
+      await this.notificationsService.create({
+        userId: recipientId,
+        title: 'New message',
+        message: `${senderName}: ${content.length > 50 ? content.substring(0, 50) + '...' : content}`,
+        type: 'MESSAGE',
+      });
+    }
+  
 
     return message;
-  }
-
-  async getMessages(chatRoomId: string, userId: string) {
-    const chatRoom = await this.prisma.chatRoom.findUnique({
-      where: { id: chatRoomId },
-      include: {
-        booking: {
-          include: {
-            user: true,
-            car: {
-              include: {
-                owner: true,
-              },
-            },
-          },
-        },
-        messages: {
-          include: {
-            sender: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-      },
-    });
-
-    if (!chatRoom) {
-      throw new NotFoundException('Chat room not found');
-    }
-
-    const booking = chatRoom.booking;
-    if (booking.userId !== userId && booking.car.ownerId !== userId) {
-      throw new ForbiddenException(
-        'You do not have permission to access this chat',
-      );
-    }
-
-    return chatRoom.messages;
   }
 
   async markAsRead(chatRoomId: string, userId: string) {
@@ -215,11 +302,15 @@ export class ChatService {
       throw new NotFoundException('Chat room not found');
     }
 
-    const booking = chatRoom.booking;
-    if (booking.userId !== userId && booking.car.ownerId !== userId) {
-      throw new ForbiddenException(
-        'You do not have permission to access this chat',
-      );
+    // Проверка доступа
+    const hasAccess =
+      chatRoom.userId1 === userId ||
+      chatRoom.userId2 === userId ||
+      (chatRoom.booking && 
+        (chatRoom.booking.userId === userId || chatRoom.booking.car?.ownerId === userId));
+
+    if (!hasAccess) {
+      throw new ForbiddenException('Access denied');
     }
 
     await this.prisma.message.updateMany({
@@ -234,83 +325,96 @@ export class ChatService {
       },
     });
 
-    return { message: 'Messages marked as read' };
+    return { success: true };
   }
 
-  async getMyChatRooms(userId: string) {
-    const chatRooms = await this.prisma.chatRoom.findMany({
+  async createDirectChatRoom(userId: string, recipientId: string) {
+    if (userId === recipientId) {
+      throw new BadRequestException('Cannot create chat room with yourself');
+    }
+
+    // Проверяем существующую комнату (используем правильные названия полей)
+    const existingRoom = await this.prisma.chatRoom.findFirst({
       where: {
         OR: [
-          {
-            booking: {
-              userId,
-            },
-          },
-          {
-            booking: {
-              car: {
-                ownerId: userId,
-              },
-            },
-          },
+          { userId1: userId, userId2: recipientId },
+          { userId1: recipientId, userId2: userId },
         ],
       },
       include: {
-        booking: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                avatar: true,
-              },
-            },
-            car: {
-              include: {
-                owner: {
-                  select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    avatar: true,
-                  },
-                },
-              },
-            },
+        user1: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        user2: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
           },
         },
         messages: {
-          orderBy: {
-            createdAt: 'desc',
-          },
           take: 1,
-          include: {
-            sender: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
+          orderBy: { createdAt: 'desc' },
         },
         _count: {
           select: {
             messages: {
               where: {
-                senderId: { not: userId },
                 isRead: false,
+                senderId: { not: userId },
               },
             },
           },
         },
       },
-      orderBy: {
-        updatedAt: 'desc',
+    });
+
+    if (existingRoom) {
+      return existingRoom;
+    }
+
+    // Создаем новую комнату (используем правильные названия полей)
+    const newRoom = await this.prisma.chatRoom.create({
+      data: {
+        userId1: userId,
+        userId2: recipientId,
+      },
+      include: {
+        user1: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        user2: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+          },
+        },
+        messages: true,
+        _count: {
+          select: {
+            messages: true,
+          },
+        },
       },
     });
 
-    return chatRooms;
+    return newRoom;
   }
 }

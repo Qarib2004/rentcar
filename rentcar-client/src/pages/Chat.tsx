@@ -62,10 +62,17 @@ export function Chat() {
   const getOtherUser = (chatRoom: ChatRoom) => {
     if (!user) return null
     
-    if (chatRoom.booking?.userId === user.id) {
-      return chatRoom.booking?.car?.owner
+    if (chatRoom.booking) {
+      if (chatRoom.booking?.userId === user.id) {
+        return chatRoom.booking?.car?.owner
+      }
+      return chatRoom.booking?.user
     }
-    return chatRoom.booking?.user
+    
+    if (chatRoom.user1?.id === user.id) {
+      return chatRoom.user2
+    }
+    return chatRoom.user1
   }
 
   const getLastMessage = (chatRoom: ChatRoom) => {
@@ -76,7 +83,6 @@ export function Chat() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Messages</h1>

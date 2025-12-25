@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import Header from '@/components/layout/Header'
 import { useCategories, useCreateCar } from '@/features/cars/hooks/useCars'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -162,21 +161,18 @@ export default function CreateCar() {
     try {
       const formData = new FormData()
 
-      // Add all form fields
       Object.entries(data).forEach(([key, value]) => {
         if (value !== '' && value !== undefined && value !== null) {
           formData.append(key, value.toString())
         }
       })
 
-      // Add features as JSON array
       if (features.length > 0) {
         features.forEach((feature) => {
           formData.append('features', feature)
         })
       }
 
-      // Add images
       images.forEach((image) => {
         formData.append('images', image)
       })
@@ -192,7 +188,6 @@ export default function CreateCar() {
   if (!isOwnerOrAdmin) {
     return (
       <>
-        <Header />
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
           <EmptyState
             icon={Car}
@@ -206,7 +201,6 @@ export default function CreateCar() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
           <div>
@@ -218,7 +212,6 @@ export default function CreateCar() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {/* Images Section */}
               <Card>
                 <CardHeader>
                   <CardTitle>Car Images</CardTitle>
@@ -273,7 +266,6 @@ export default function CreateCar() {
                 </CardContent>
               </Card>
 
-              {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
@@ -407,7 +399,6 @@ export default function CreateCar() {
                 </CardContent>
               </Card>
 
-              {/* Specifications */}
               <Card>
                 <CardHeader>
                   <CardTitle>Specifications</CardTitle>
@@ -563,7 +554,6 @@ export default function CreateCar() {
                 </CardContent>
               </Card>
 
-              {/* Pricing */}
               <Card>
                 <CardHeader>
                   <CardTitle>Pricing</CardTitle>
@@ -634,7 +624,6 @@ export default function CreateCar() {
                 </CardContent>
               </Card>
 
-              {/* Location */}
               <Card>
                 <CardHeader>
                   <CardTitle>Location</CardTitle>
@@ -703,7 +692,6 @@ export default function CreateCar() {
                 </CardContent>
               </Card>
 
-              {/* Features */}
               <Card>
                 <CardHeader>
                   <CardTitle>Features</CardTitle>
@@ -749,7 +737,6 @@ export default function CreateCar() {
                 </CardContent>
               </Card>
 
-              {/* Description */}
               <Card>
                 <CardHeader>
                   <CardTitle>Description</CardTitle>
@@ -776,7 +763,6 @@ export default function CreateCar() {
                 </CardContent>
               </Card>
 
-              {/* Submit Button */}
               <div className="flex gap-4">
                 <Button type="submit" disabled={isCreating || isSubmitting} className="flex-1 sm:flex-none">
                   {isCreating || isSubmitting ? 'Creating...' : 'Create Car Listing'}

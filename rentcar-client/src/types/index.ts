@@ -54,6 +54,11 @@ export interface User {
   licenseExpiry?: string
   createdAt: string
   updatedAt: string
+  _count?: {
+    bookings?: number
+    reviews?: number
+    rentals?: number
+  }
 }
 
 export interface LoginCredentials {
@@ -90,6 +95,7 @@ export interface Category {
 
 export interface Car {
   id: string
+  slug?:string
   ownerId: string
   categoryId: string
   brand: string
@@ -250,9 +256,13 @@ export interface CreateReviewData {
 export interface ChatRoom {
   id: string
   bookingId: string
+  userId1?: string | null
+  userId2?: string | null
   createdAt: string
   updatedAt: string
-  booking?: Booking
+  booking?: Booking | null
+  user1?: User | null
+  user2?: User | null
   messages?: Message[]
   _count?: {
     messages: number
@@ -275,6 +285,20 @@ export interface SendMessageData {
   content: string
 }
 
+
+export interface NotificationMetadata {
+  messageId?: string
+  chatRoomId?: string
+  senderId?: string
+  senderName?: string
+  bookingId?: string
+  carId?: string
+  [key: string]: any
+}
+
+export type NotificationType = 'MESSAGE' | 'SYSTEM' | 'BOOKING' | 'PAYMENT'
+
+
 export interface Notification {
   id: string
   userId: string
@@ -282,6 +306,7 @@ export interface Notification {
   message: string
   type: string
   data?: any
+  metadata?: NotificationMetadata
   isRead: boolean
   createdAt: string
   readAt?: string

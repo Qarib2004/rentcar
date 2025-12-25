@@ -11,6 +11,23 @@ export function useChatRooms() {
   })
 }
 
+
+export function useCreateChatRoom() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: { recipientId: string }) => chatApi.createChatRoom(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CHAT })
+      toast.success('Chat room created')
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || 'Failed to create chat room'
+      toast.error(errorMessage)
+    },
+  })
+}
+
 export function useChatRoom(bookingId: string) {
   return useQuery({
     queryKey: ['chatRoom', bookingId],

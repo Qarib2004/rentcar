@@ -89,7 +89,7 @@ export default function CarCard({ car }: CarCardProps) {
           </p>
           <p className="text-sm text-gray-500">per day</p>
         </div>
-        <Link to={`/cars/${car.id}`}>
+        <Link to={`/cars/${car.slug}`}>
           <Button>View Details</Button>
         </Link>
       </CardFooter>

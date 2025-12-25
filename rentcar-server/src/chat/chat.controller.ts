@@ -17,6 +17,7 @@ import {
 import { ChatService } from './chat.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { CurrentUser } from '../common/decorators/cureent-user.decorator';
+import { CreateChatRoomDto } from './dto/create-chat.dto';
 
 @ApiTags('chat')
 @Controller('chat')
@@ -74,4 +75,18 @@ export class ChatController {
   ) {
     return this.chatService.markAsRead(chatRoomId, userId);
   }
+
+
+  @Post('rooms')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create or get existing chat room with user' })
+  @ApiResponse({ status: 201, description: 'Chat room created or retrieved' })
+  async createChatRoom(
+    @CurrentUser('id') userId: string,
+    @Body() createChatRoomDto: CreateChatRoomDto,
+  ) {
+    return this.chatService.createDirectChatRoom(userId, createChatRoomDto.recipientId);
+  }
+
+
 }

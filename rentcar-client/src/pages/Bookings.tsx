@@ -36,7 +36,6 @@ export function Bookings() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
@@ -60,7 +59,6 @@ export function Bookings() {
                 <Card key={booking.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      {/* Left Section - Car Info */}
                       <div className="flex gap-4">
                         {booking.car?.images?.[0] && (
                           <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">

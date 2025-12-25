@@ -20,6 +20,13 @@ export const getNotifications = async (
   return apiClient.get(`${API_ENDPOINTS.NOTIFICATIONS}?page=${page}&limit=${limit}`)
 }
 
+export const getMessageNotifications = async (
+  page: number = 1,
+  limit: number = 10
+): Promise<NotificationsResponse> => {
+  return apiClient.get(`${API_ENDPOINTS.MESSAGE_NOTIFICATIONS}?page=${page}&limit=${limit}`)
+}
+
 export const getUnreadCount = async (): Promise<{ unreadCount: number }> => {
   return apiClient.get(`${API_ENDPOINTS.NOTIFICATIONS}/unread-count`)
 }

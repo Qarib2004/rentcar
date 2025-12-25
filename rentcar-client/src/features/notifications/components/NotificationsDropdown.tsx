@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { Bell, Check, Trash2, X } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Bell, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead, useDeleteNotification } from '../hooks/useNotifications'
 import { formatDistanceToNow } from 'date-fns'
 import type { Notification } from '@/types'
+import { useNavigate } from 'react-router-dom'
 
 export default function NotificationsDropdown() {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const { data: unreadData } = useUnreadCount()
   const { data: notificationsData, isLoading } = useNotifications(1, 10)
@@ -18,10 +19,11 @@ export default function NotificationsDropdown() {
   const unreadCount = unreadData?.unreadCount || 0
 
   const handleNotificationClick = (notification: Notification) => {
-    if (!notification.isRead) {
-      markAsRead(notification.id)
+    if (notification.type === 'MESSAGE' && notification.metadata?.chatRoomId) {
+      navigate(`/messages/${notification.metadata.chatRoomId}`)
+    } else if (notification.type === 'BOOKING' && notification.metadata?.bookingId) {
+      navigate(`/bookings/${notification.metadata.bookingId}`)
     }
-
   }
 
   const handleMarkAllAsRead = () => {

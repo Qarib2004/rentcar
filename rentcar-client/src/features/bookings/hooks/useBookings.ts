@@ -1,11 +1,9 @@
-import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import * as bookingsApi from '../api/bookingsApi'
-import { QUERY_KEYS, TOAST_MESSAGES, ROUTES } from '@/lib/utils/constants'
+import { QUERY_KEYS, TOAST_MESSAGES } from '@/lib/utils/constants'
 import type { BookingsQueryParams } from '@/types/api.types'
-import { serializeQueryParams } from '@/lib/utils/query'
 
 export function useCheckAvailability(carId: string, startDate?: string, endDate?: string) {
   return useQuery({
@@ -30,13 +28,16 @@ export function useOwnerBookings(page: number = 1, limit: number = 10) {
 }
 
 export function useAllBookings(params?: BookingsQueryParams) {
-  const serializedParams = useMemo(() => serializeQueryParams(params), [params])
+  const queryKeyParams = params ? { ...params } : {}
 
   return useQuery({
-    queryKey: [...QUERY_KEYS.BOOKINGS, 'all', serializedParams],
+    queryKey: [...QUERY_KEYS.BOOKINGS, 'all', queryKeyParams],
     queryFn: () => bookingsApi.getAllBookings(params),
   })
 }
+
+
+
 
 export function useBookingDetails(id: string) {
   return useQuery({
@@ -55,7 +56,8 @@ export function useCreateBooking() {
     onSuccess: (booking) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BOOKINGS })
       toast.success(TOAST_MESSAGES.BOOKING_SUCCESS)
-      navigate(`/bookings/${booking.id}`)
+      // navigate(`/bookings/${booking.id}`)
+      navigate(`/payment/${booking.id}`)
     },
     onError: (error: any) => {
       const message = error?.response?.data?.message || TOAST_MESSAGES.BOOKING_ERROR

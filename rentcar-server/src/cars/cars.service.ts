@@ -13,6 +13,7 @@ import { FilterCarDto } from './dto/filter-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import slugify from 'slugify';
 
 @Injectable()
 export class CarsService {
@@ -22,11 +23,27 @@ export class CarsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
+  private async generateUniqueSlug(brand: string, model: string, year: number): Promise<string> {
+    let baseSlug = slugify(`${brand}-${model}-${year}`, { lower: true, strict: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (await this.prisma.car.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    return slug;
+  }
+
+
   async create(
     ownerId: string,
     createCarDto: CreateCarDto,
     images?: Express.Multer.File[],
   ) {
+    const slug = await this.generateUniqueSlug(createCarDto.brand, createCarDto.model, createCarDto.year);
+
     const category = await this.prisma.category.findUnique({
       where: { id: createCarDto.categoryId },
     });
@@ -56,6 +73,7 @@ export class CarsService {
         ...createCarDto,
         ownerId,
         images: imageUrls,
+        slug
       },
       include: {
         owner: {
@@ -238,6 +256,57 @@ export class CarsService {
 
     return car;
   }
+
+
+  async findOneBySlug(slug: string) {
+  
+    const car = await this.prisma.car.findUnique({
+      where: { slug },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            avatar: true,
+          },
+        },
+        category: true,
+        reviews: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 10,
+        },
+        _count: {
+          select: {
+            bookings: true,
+            reviews: true,
+          },
+        },
+      },
+    });
+  
+    if (!car) {
+      throw new NotFoundException(`Car with slug "${slug}" not found`);
+    }
+  
+  
+    return car;
+  }
+  
 
   async findMyOwnedCars(ownerId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;

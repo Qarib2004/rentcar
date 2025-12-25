@@ -51,6 +51,31 @@ enum FuelType {
   HYBRID
 }
 
+enum OwnerRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model OwnerRequest {
+  id          String   @id @default(uuid())
+  userId      String
+  status      OwnerRequestStatus @default(PENDING)
+  message     String?  
+  adminNote   String?  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reviewedAt  DateTime?
+  reviewedBy  String?  
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer    User?    @relation("ReviewedRequests", fields: [reviewedBy], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("owner_requests")
+}
+
 
 model User {
   id            String    @id @default(uuid())
@@ -76,6 +101,10 @@ model User {
   sentMessages  Message[] @relation("MessageSender")
   payments      Payment[]
   notifications Notification[]
+  chatRoomsAsUser1 ChatRoom[] @relation("ChatRoomUser1")
+  chatRoomsAsUser2 ChatRoom[] @relation("ChatRoomUser2")
+  ownerRequests       OwnerRequest[]
+  reviewedRequests   OwnerRequest[] @relation("ReviewedRequests")
 
   @@map("users")
 }
@@ -96,6 +125,7 @@ model Category {
 
 model Car {
   id              String           @id @default(uuid())
+  slug            String?            @unique
   ownerId         String
   categoryId      String
   
@@ -239,14 +269,21 @@ model Review {
 
 model ChatRoom {
   id          String    @id @default(uuid())
-  bookingId   String    @unique
+  bookingId   String?   @unique  // Сделали optional
+  userId1     String?              // Для прямых чатов
+  userId2     String?              // Для прямых чатов
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking     Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user1       User?     @relation("ChatRoomUser1", fields: [userId1], references: [id], onDelete: Cascade)
+  user2       User?     @relation("ChatRoomUser2", fields: [userId2], references: [id], onDelete: Cascade)
   messages    Message[]
 
+  @@unique([userId1, userId2])
+  @@index([userId1])
+  @@index([userId2])
   @@map("chat_rooms")
 }
 
@@ -268,7 +305,6 @@ model Message {
   @@index([senderId])
   @@map("messages")
 }
-
 model Notification {
   id        String   @id @default(uuid())
   userId    String

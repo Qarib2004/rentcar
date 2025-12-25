@@ -63,7 +63,20 @@ api.interceptors.response.use(
         tokenManager.clear()
         localStorage.removeItem(STORAGE_KEYS.USER)
         
-        if (window.location.pathname !== ROUTES.LOGIN) {
+        const publicPaths = [
+          ROUTES.LOGIN,
+          ROUTES.REGISTER,
+          ROUTES.FORGOT_PASSWORD,
+          ROUTES.RESET_PASSWORD, // ← Добавили
+          ROUTES.HOME,
+          ROUTES.ABOUT,
+          ROUTES.CARS,
+        ]
+        
+        const currentPath = window.location.pathname
+        const isPublicPath = publicPaths.some(path => currentPath.startsWith(path))
+        
+        if (!isPublicPath) {
           router.navigate(ROUTES.LOGIN)
         }
         

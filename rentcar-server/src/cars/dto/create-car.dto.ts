@@ -21,6 +21,8 @@ export class CreateCarDto {
   categoryId: string;
   
 
+  
+
   @ApiProperty({ example: 'Toyota' })
   @IsString()
   @MinLength(2)

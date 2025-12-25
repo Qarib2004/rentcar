@@ -8,20 +8,45 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import EmptyState from '@/components/common/EmptyState'
 import {
-  Car as CarIcon,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  Car,
   Plus,
   Edit2,
   Trash2,
   Eye,
-  Settings as SettingsIcon,
+  Settings,
 } from 'lucide-react'
 import { formatPrice, resolveImageUrl } from '@/lib/utils'
-import type { Car } from '@/types'
+import type { Car as CarType } from '@/types'
+import EditMyCar from '@/features/cars/components/EditMyCar'
 
 export default function MyCars() {
   const [page, setPage] = useState(1)
+  const [statusDialog, setStatusDialog] = useState<{ open: boolean; carId: string; status: string }>({
+    open: false,
+    carId: '',
+    status: '',
+  })
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; carId: string }>({
+    open: false,
+    carId: '',
+  })
+  const [editDialog, setEditDialog] = useState<{ open: boolean; carId: string }>({
+    open: false,
+    carId: '',
+  })
+  
   const { data: carsData, isLoading } = useMyCars(page, 10)
-  const { mutate: updateStatus } = useUpdateCarStatus('')
+  const { mutate: updateStatus } = useUpdateCarStatus()
   const { mutate: deleteCar } = useDeleteCar()
   const navigate = useNavigate()
 
@@ -41,20 +66,25 @@ export default function MyCars() {
   }
 
   const handleStatusChange = (carId: string, newStatus: string) => {
-    if (window.confirm(`Change car status to ${newStatus}?`)) {
-      updateStatus(newStatus)
-    }
+    setStatusDialog({ open: true, carId, status: newStatus })
+  }
+
+  const confirmStatusChange = () => {
+    updateStatus({ carId: statusDialog.carId, status: statusDialog.status })
+    setStatusDialog({ open: false, carId: '', status: '' })
   }
 
   const handleDelete = (carId: string) => {
-    if (window.confirm('Are you sure you want to delete this car? This action cannot be undone.')) {
-      deleteCar(carId)
-    }
+    setDeleteDialog({ open: true, carId })
+  }
+
+  const confirmDelete = () => {
+    deleteCar(deleteDialog.carId)
+    setDeleteDialog({ open: false, carId: '' })
   }
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between mb-8">
@@ -62,7 +92,7 @@ export default function MyCars() {
               <h1 className="text-3xl font-bold text-gray-900">My Cars</h1>
               <p className="text-gray-600 mt-2">Manage your car listings</p>
             </div>
-            <Link to="/cars/create">
+            <Link to="/create-car">
               <Button size="lg">
                 <Plus className="w-5 h-5 mr-2" />
                 Add New Car
@@ -83,11 +113,10 @@ export default function MyCars() {
           ) : carsData && carsData.data.length > 0 ? (
             <>
               <div className="grid grid-cols-1 gap-6">
-                {carsData.data.map((car: Car) => (
+                {carsData.data.map((car: CarType) => (
                   <Card key={car.id} className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row gap-6">
-                        {/* Car Image */}
                         <div className="w-full md:w-48 h-48 rounded-lg overflow-hidden bg-gray-200 shrink-0">
                           {car.images && car.images.length > 0 ? (
                             <img
@@ -97,7 +126,7 @@ export default function MyCars() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              <CarIcon className="w-12 h-12" />
+                              <Car className="w-12 h-12" />
                             </div>
                           )}
                         </div>
@@ -141,15 +170,17 @@ export default function MyCars() {
                                 View
                               </Button>
                             </Link>
-                            <Link to={`/cars/${car.id}/edit`}>
-                              <Button variant="outline" size="sm">
-                                <Edit2 className="w-4 h-4 mr-2" />
-                                Edit
-                              </Button>
-                            </Link>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setEditDialog({ open: true, carId: car.id })}
+                            >
+                              <Edit2 className="w-4 h-4 mr-2" />
+                              Edit
+                            </Button>
                             <div className="relative group">
                               <Button variant="outline" size="sm">
-                                <SettingsIcon className="w-4 h-4 mr-2" />
+                                <Settings className="w-4 h-4 mr-2" />
                                 Status
                               </Button>
                               <div className="hidden group-hover:block absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[150px]">
@@ -204,7 +235,7 @@ export default function MyCars() {
             </>
           ) : (
             <EmptyState
-              icon={CarIcon}
+              icon={Car}
               title="No cars yet"
               description="Start by adding your first car to the platform"
               actionLabel="Add Car"
@@ -213,6 +244,49 @@ export default function MyCars() {
           )}
         </div>
       </div>
+
+      {/* Status Change Dialog */}
+      <AlertDialog open={statusDialog.open} onOpenChange={(open) => !open && setStatusDialog({ open: false, carId: '', status: '' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Car Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to change the car status to {statusDialog.status}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmStatusChange}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, carId: '' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Car</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this car? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Dialog */}
+      {editDialog.open && (
+        <EditMyCar
+          carId={editDialog.carId}
+          open={editDialog.open}
+          onOpenChange={(open) => setEditDialog({ open, carId: open ? editDialog.carId : '' })}
+        />
+      )}
     </>
   )
 }

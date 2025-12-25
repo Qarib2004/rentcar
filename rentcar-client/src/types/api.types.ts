@@ -1,3 +1,4 @@
+import { UserRole } from "."
 
 export interface PaginationParams {
   page?: number
@@ -29,6 +30,7 @@ export interface BookingsQueryParams extends PaginationParams {
   status?: string
   startDate?: string
   endDate?: string
+  search?: string
 }
 
 export interface ReviewsQueryParams extends PaginationParams {
@@ -49,7 +51,7 @@ export interface MessagesQueryParams extends PaginationParams {
 
 export interface CreateReviewData {
   bookingId: string
-  carId: string
+  // carId: string
   rating: number
   comment?: string
 }
@@ -79,7 +81,7 @@ export interface ForgotPasswordData {
 
 export interface ResetPasswordData {
   token: string
-  password: string
+  newPassword: string
 }
 
 export interface UpdateCarData {
@@ -224,3 +226,16 @@ export interface BookingUpdateEvent {
   status: string
   updatedAt: string
 }
+
+export type UsersQueryParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort?: 'asc' | 'desc';
+  role?: UserRole;
+  isActive?: boolean;
+};
+export type UserRoleUpdatePayload = {
+  userId: string;
+  role: string;
+};

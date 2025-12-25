@@ -22,14 +22,14 @@ import { Tag, Plus, Edit, Trash2 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { UserRole, type Category } from '@/types'
 
-const initialForm = {
+export const initialForm = {
   name: '',
   slug: '',
   description: '',
   icon: '',
 }
 
-const slugify = (value: string) =>
+export const slugify = (value: string) =>
   value
     .toLowerCase()
     .trim()
@@ -129,7 +129,6 @@ export default function Categories() {
   if (!isAdmin) {
     return (
       <>
-        <Header />
         <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
           <EmptyState
             icon={Tag}

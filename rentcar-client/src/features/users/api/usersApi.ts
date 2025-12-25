@@ -5,6 +5,7 @@ import type { User, PaginatedResponse } from '@/types'
 import type {
   UpdateUserProfileData,
   ChangePasswordData,
+  UsersQueryParams,
 } from '@/types/api.types'
 
 export const getAllUsers = async (
@@ -12,6 +13,29 @@ export const getAllUsers = async (
   limit: number = 10
 ): Promise<PaginatedResponse<User>> => {
   return apiClient.get(`${API_ENDPOINTS.USERS}?page=${page}&limit=${limit}`)
+}
+
+
+export const getUsers = async (params?: UsersQueryParams) => {
+  const { data } = await apiClient.get<PaginatedResponse<User>>('/user', { params })
+  return data
+}
+
+
+
+export const updateUserRole = async (userId: string, role: string) => {
+  return apiClient.patch(`/user/${userId}/role`, { role })
+
+}
+
+export const toggleUserStatus = async (userId: string, isActive: boolean) => {
+  const { data } = await apiClient.patch(`/user/${userId}/status`, { isActive })
+  return data
+}
+
+export const deleteUser = async (userId: string) => {
+  const { data } = await apiClient.delete(`/user/${userId}`)
+  return data
 }
 
 export const getMyProfile = async (): Promise<User> => {

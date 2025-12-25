@@ -10,8 +10,13 @@ export const STORAGE_KEYS = {
 
 export const ROUTES = {
   HOME: '/',
+  ABOUT:'/about',
   MyCARS:'/my-cars',
+  ADMIN_BOOKINGS: '/dashboard/bookings',
+  ADMIN_CARS: '/dashboard/cars',
+  ADMIN_REQUESTS:'/dashboard/requests',
   CREATE_CAR:'/create-car',
+  ADMIN_USERS: '/dashboard/users',
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
@@ -26,6 +31,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   PAYMENT: '/payment',
   CATEGORIES: '/categories',
+
   NOT_FOUND: '*',
 } as const
 
@@ -41,7 +47,7 @@ export const API_ENDPOINTS = {
   ME: '/auth/me',
   
   CARS: '/cars',
-  CAR_DETAILS: (id: string) => `/cars/${id}`,
+  CAR_DETAILS: (slug: string) => `/cars/${slug}`,
   CAR_SEARCH: '/cars/search',
   
   BOOKINGS: '/bookings',
@@ -63,6 +69,7 @@ export const API_ENDPOINTS = {
   
   NOTIFICATIONS: '/notifications',
   MARK_AS_READ: (id: string) => `/notifications/${id}/read`,
+  MESSAGE_NOTIFICATIONS:['notifications','messages'],
   
   CHAT: '/chat',
   MESSAGES: '/chat/messages',
@@ -157,6 +164,7 @@ export const QUERY_KEYS = {
   AUTH: ['auth'],
   USER: ['user'],
   CARS: ['cars'],
+  PAYMENTS: ['payments'],
   CAR_DETAILS: (id: string) => ['cars', id],
   CATEGORIES: ['categories'],
   BOOKINGS: ['bookings'],
@@ -164,6 +172,8 @@ export const QUERY_KEYS = {
   REVIEWS: ['reviews'],
   CAR_REVIEWS: (carId: string) => ['reviews', 'car', carId],
   NOTIFICATIONS: ['notifications'],
+  MESSAGE_NOTIFICATIONS:['notifications','messages'],
+  NOTIFICATION_UNREAD: ['notifications', 'unread'],
   STATISTICS: ['statistics'],
   CHAT: ['chat'],
   MESSAGES: (conversationId: string) => ['messages', conversationId],

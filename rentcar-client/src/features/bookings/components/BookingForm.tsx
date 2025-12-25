@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { format, differenceInDays, addDays } from 'date-fns'
-import { Calendar, MapPin, AlertCircle } from 'lucide-react'
+import { Calendar, MapPin, AlertCircle, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { useCreateBooking, useCheckAvailability } from '../hooks/useBookings'
 import { formatPrice } from '@/lib/utils'
 import type { Car } from '@/types'
+import { toast } from 'sonner'
 
 interface BookingFormProps {
   car: Car
@@ -21,6 +22,7 @@ export default function BookingForm({ car }: BookingFormProps) {
   const [returnLocation, setReturnLocation] = useState(car.location)
 
   const { mutate: createBooking, isPending } = useCreateBooking()
+  console.log(createBooking)
   const { data: availability } = useCheckAvailability(car.id, startDate, endDate)
 
   const totalDays = startDate && endDate ? differenceInDays(new Date(endDate), new Date(startDate)) : 0
@@ -41,11 +43,19 @@ export default function BookingForm({ car }: BookingFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!availability?.isAvailable) {
+  
+    if (isPending) return
+  
+    // if (!availability?.isAvailable) {
+    //   toast.error('Car is not available for selected dates')
+    //   return
+    // }
+  
+    if (totalDays <= 0) {
+      toast.error('Please select valid dates')
       return
     }
-
+  
     createBooking({
       carId: car.id,
       startDate,
@@ -176,15 +186,16 @@ export default function BookingForm({ car }: BookingFormProps) {
             </div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full"
-            size="lg"
-            disabled={!canSubmit}
-            isLoading={isPending}
-          >
-            {isPending ? 'Processing...' : 'Confirm Booking'}
-          </Button>
+<Button
+  type="submit"
+  className="w-full"
+  size="lg"
+  disabled={!canSubmit || isPending} 
+>
+  {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+  {isPending ? 'Processing...' : 'Confirm Booking'}
+</Button>
+
 
           <p className="text-xs text-gray-500 text-center">
             Free cancellation up to 24 hours before pick-up

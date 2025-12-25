@@ -1,19 +1,44 @@
 import { useState, useRef } from 'react'
 import Header from '@/components/layout/Header'
-import { useMyProfile, useMyStats, useUpdateProfile, useUploadAvatar } from '@/features/users/hooks/useProfile'
+import { useMyProfile, useUpdateProfile, useUploadAvatar } from '@/features/users/hooks/useProfile'
+import { useMyOwnerRequest, useCreateOwnerRequest, useCancelOwnerRequest } from '@/features/owner-requests/hooks/useOwnerRequests'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { User, Mail, Phone, Calendar, Upload, Edit2, Save, X } from 'lucide-react'
-import { getInitials, formatPrice } from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { User, Mail, Phone, Calendar, Upload, Edit2, Save, X, Crown, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { getInitials } from '@/lib/utils'
 import { format } from 'date-fns'
+import { UserRole } from '@/types'
 
 export function Profile() {
   const [isEditing, setIsEditing] = useState(false)
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false)
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+  const [requestMessage, setRequestMessage] = useState('')
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -24,9 +49,11 @@ export function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: profile, isLoading: profileLoading } = useMyProfile()
-  const { data: stats, isLoading: statsLoading } = useMyStats()
+  const { data: ownerRequest, isLoading: requestLoading } = useMyOwnerRequest()
   const { mutate: updateProfile, isPending: isUpdating } = useUpdateProfile()
   const { mutate: uploadAvatar, isPending: isUploading } = useUploadAvatar()
+  const { mutate: createRequest, isPending: isCreatingRequest } = useCreateOwnerRequest()
+  const { mutate: cancelRequest, isPending: isCancellingRequest } = useCancelOwnerRequest()
 
   useState(() => {
     if (profile) {
@@ -58,10 +85,15 @@ export function Profile() {
   }
 
   const handleSave = () => {
-    updateProfile(formData, {
-      onSuccess: () => {
-        setIsEditing(false)
-      },
+    const payload = {
+      ...formData,
+      licenseExpiry: formData.licenseExpiry
+        ? new Date(formData.licenseExpiry).toISOString()
+        : '',
+    }
+  
+    updateProfile(payload, {
+      onSuccess: () => setIsEditing(false),
     })
   }
 
@@ -71,6 +103,58 @@ export function Profile() {
       uploadAvatar(file)
     }
   }
+
+  const handleSubmitRequest = () => {
+    createRequest(
+      { message: requestMessage },
+      {
+        onSuccess: () => {
+          setIsRequestDialogOpen(false)
+          setRequestMessage('')
+        },
+      }
+    )
+  }
+
+  const handleCancelRequest = () => {
+    cancelRequest(undefined, {
+      onSuccess: () => {
+        setIsCancelDialogOpen(false)
+      },
+    })
+  }
+
+  const getRequestStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return (
+          <Badge variant="warning" className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Pending Review
+          </Badge>
+        )
+      case 'APPROVED':
+        return (
+          <Badge variant="success" className="flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            Approved
+          </Badge>
+        )
+      case 'REJECTED':
+        return (
+          <Badge variant="danger" className="flex items-center gap-1">
+            <XCircle className="w-3 h-3" />
+            Rejected
+          </Badge>
+        )
+      default:
+        return null
+    }
+  }
+
+  const canRequestOwner = profile?.role === UserRole.CLIENT && !ownerRequest
+  const hasPendingRequest = ownerRequest?.status === 'PENDING'
+  const isOwnerOrAdmin = profile?.role === UserRole.OWNER || profile?.role === UserRole.ADMIN
 
   if (profileLoading) {
     return (
@@ -89,7 +173,6 @@ export function Profile() {
   if (!profile) {
     return (
       <>
-        <Header />
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <p>Profile not found</p>
         </div>
@@ -99,8 +182,7 @@ export function Profile() {
 
   return (
     <>
-      <Header />
-      <div className="min-h-screen bg-gray-50">
+          <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
 
@@ -224,7 +306,6 @@ export function Profile() {
                     </div>
                   </div>
 
-                  {/* Account Info */}
                   <div className="pt-4 border-t">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-sm text-gray-600">Account Status:</span>
@@ -244,43 +325,157 @@ export function Profile() {
             </div>
 
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Statistics</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {statsLoading ? (
-                    <>
-                      <Skeleton className="h-16 w-full" />
-                      <Skeleton className="h-16 w-full" />
-                      <Skeleton className="h-16 w-full" />
-                    </>
-                  ) : stats ? (
-                    <>
-                      <div>
-                        <p className="text-sm text-gray-500">Total Bookings</p>
-                        <p className="text-2xl font-bold">{stats.totalBookings}</p>
+              {/* Become Owner Card */}
+              {!isOwnerOrAdmin && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Crown className="w-5 h-5 text-yellow-500" />
+                      Become a Car Owner
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {requestLoading ? (
+                      <Skeleton className="h-24 w-full" />
+                    ) : ownerRequest ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Status:</span>
+                          {getRequestStatusBadge(ownerRequest.status)}
+                        </div>
+
+                        {ownerRequest.message && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Your message:</p>
+                            <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                              {ownerRequest.message}
+                            </p>
+                          </div>
+                        )}
+
+                        {ownerRequest.adminNote && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Admin response:</p>
+                            <p className="text-sm text-gray-700 bg-blue-50 p-2 rounded border border-blue-200">
+                              {ownerRequest.adminNote}
+                            </p>
+                          </div>
+                        )}
+
+                        <p className="text-xs text-gray-500">
+                          Submitted: {format(new Date(ownerRequest.createdAt), 'MMM dd, yyyy HH:mm')}
+                        </p>
+
+                        {ownerRequest.reviewedAt && (
+                          <p className="text-xs text-gray-500">
+                            Reviewed: {format(new Date(ownerRequest.reviewedAt), 'MMM dd, yyyy HH:mm')}
+                          </p>
+                        )}
+
+                        {hasPendingRequest && (
+                          <>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => setIsCancelDialogOpen(true)}
+                            >
+                              Cancel Request
+                            </Button>
+
+                            <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Request</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel your owner request? You can submit a new one later.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel disabled={isCancellingRequest}>
+                                    No, Keep It
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={handleCancelRequest}
+                                    disabled={isCancellingRequest}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    {isCancellingRequest ? 'Cancelling...' : 'Yes, Cancel Request'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        )}
+
+                        {ownerRequest.status === 'REJECTED' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => setIsRequestDialogOpen(true)}
+                          >
+                            Submit New Request
+                          </Button>
+                        )}
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Active Bookings</p>
-                        <p className="text-2xl font-bold text-blue-600">{stats.activeBookings}</p>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600">
+                          List your cars and start earning by becoming a car owner on our platform.
+                        </p>
+                        <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button className="w-full">
+                              <Crown className="w-4 h-4 mr-2" />
+                              Request Owner Access
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Request Owner Access</DialogTitle>
+                              <DialogDescription>
+                                Tell us why you want to become a car owner. Our admin will review your request.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div>
+                                <Label htmlFor="message">Message (Optional)</Label>
+                                <Textarea
+                                  id="message"
+                                  value={requestMessage}
+                                  onChange={(e) => setRequestMessage(e.target.value)}
+                                  placeholder="I want to list my car and start earning..."
+                                  rows={4}
+                                  maxLength={500}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {requestMessage.length}/500 characters
+                                </p>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsRequestDialogOpen(false)}
+                                disabled={isCreatingRequest}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={handleSubmitRequest}
+                                disabled={isCreatingRequest}
+                              >
+                                {isCreatingRequest ? 'Submitting...' : 'Submit Request'}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Completed</p>
-                        <p className="text-2xl font-bold text-green-600">{stats.completedBookings}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Total Spent</p>
-                        <p className="text-2xl font-bold">{formatPrice(stats.totalSpent)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Reviews Given</p>
-                        <p className="text-2xl font-bold">{stats.totalReviews}</p>
-                      </div>
-                    </>
-                  ) : null}
-                </CardContent>
-              </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               <Card>
                 <CardHeader>
@@ -288,7 +483,7 @@ export function Profile() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-gray-600 mb-2">
-                    Role: <span className="font-medium">{profile.role}</span>
+                    Role: <span className="font-medium capitalize">{profile.role.toLowerCase()}</span>
                   </p>
                   <p className="text-sm text-gray-600">
                     Member since: <span className="font-medium">

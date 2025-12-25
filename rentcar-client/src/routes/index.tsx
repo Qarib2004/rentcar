@@ -17,7 +17,6 @@ import { Profile } from '@/pages/Profile'
 import { Settings } from '@/pages/Settings'
 import { Chat } from '@/pages/Chat'
 import { Dashboard } from '@/pages/Dashboard'
-import { Payment } from '@/pages/Payment'
 import Categories from '@/pages/Categories'
 
 import { NotFound } from '@/pages/NotFound'
@@ -26,6 +25,12 @@ import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import MyCars from '@/pages/MyCars'
 import CreateCar from '@/pages/CreateCar'
+import CarsAdmin from '@/pages/CarsAdmin'
+import UsersAdmin from '@/pages/UsersAdmin'
+import Payment from '@/pages/Payments'
+import BookingsAdmin from '@/pages/BookingsAdmin'
+import About from '@/pages/About'
+import OwnerRequests from '@/features/owner-requests/components/OwnerRequests'
 
 export const router = createBrowserRouter([
   {
@@ -33,9 +38,29 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       {
+        path: ROUTES.HOME,
+        element: <Home />,
+      },
+      {
+        path: ROUTES.ABOUT,
+        element: <About />,
+      },
+      {
+        path: ROUTES.CARS,
+        element: <Cars />,
+      },
+      {
+        path: '/cars/:slug',
+        element: <CarDetails />,
+      },
+      {
+        path: ROUTES.RESET_PASSWORD, 
+        element: <ResetPassword />,
+      },
+
+      {
         element: <PublicRoute />,
         children: [
-      
           {
             path: ROUTES.LOGIN,
             element: <Login />,
@@ -48,10 +73,10 @@ export const router = createBrowserRouter([
             path: ROUTES.FORGOT_PASSWORD,
             element: <ForgotPassword />,
           },
-          {
-            path: ROUTES.RESET_PASSWORD,
-            element: <ResetPassword />,
-          },
+          // {
+          //   path: ROUTES.RESET_PASSWORD,
+          //   element: <ResetPassword />,
+          // },
         ],
       },
 
@@ -59,32 +84,36 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           {
-            path: ROUTES.HOME,
-            element: <Home />,
-          },
-          {
             path: ROUTES.CREATE_CAR,
             element: <CreateCar />,
+          },
+          {
+            path: ROUTES.ADMIN_USERS,
+            element: <UsersAdmin />,
+          },
+          {
+            path: ROUTES.ADMIN_CARS,
+            element: <CarsAdmin />,
           },
           {
             path: ROUTES.MyCARS,
             element: <MyCars />,
           },
           {
-            path: ROUTES.CARS,
-            element: <Cars />,
-          },
-          {
-            path: '/cars/:id',
-            element: <CarDetails />,
-          },
-          {
             path: ROUTES.BOOKINGS,
             element: <Bookings />,
           },
           {
+            path: ROUTES.ADMIN_BOOKINGS,
+            element: <BookingsAdmin />,
+          },
+          {
             path: '/bookings/:id',
             element: <BookingDetails />,
+          },
+          {
+            path: '/payment/:id',
+            element: <Payment />,
           },
           {
             path: ROUTES.PROFILE,
@@ -110,6 +139,10 @@ export const router = createBrowserRouter([
             path: ROUTES.CATEGORIES,
             element: <Categories />,
           },
+          {
+            path:ROUTES.ADMIN_REQUESTS,
+            element:<OwnerRequests/>
+          }
         ],
       },
 

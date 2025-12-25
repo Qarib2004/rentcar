@@ -7,11 +7,10 @@ import { useCreateReview } from '../hooks/useReviews'
 
 interface ReviewFormProps {
   bookingId: string
-  carId: string
   onSuccess?: () => void
 }
 
-export default function ReviewForm({ bookingId, carId, onSuccess }: ReviewFormProps) {
+export default function ReviewForm({ bookingId, onSuccess }: ReviewFormProps) {
   const [rating, setRating] = useState(0)
   const [hoveredRating, setHoveredRating] = useState(0)
   const [comment, setComment] = useState('')
@@ -28,7 +27,6 @@ export default function ReviewForm({ bookingId, carId, onSuccess }: ReviewFormPr
     createReview(
       {
         bookingId,
-        carId,
         rating,
         comment: comment.trim() || undefined,
       },

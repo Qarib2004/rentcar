@@ -13,7 +13,7 @@ import {
 import { UserService } from './user.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/cureent-user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -56,6 +56,17 @@ export class UserController {
   async findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
   }
+
+  @Delete(':id')
+@Roles(UserRole.ADMIN)
+@HttpCode(HttpStatus.OK)
+@ApiOperation({ summary: 'Delete user by ID (Admin only)' })
+@ApiResponse({ status: 200, description: 'User deleted successfully' })
+@ApiResponse({ status: 404, description: 'User not found' })
+async deleteUser(@Param('id') id: string) {
+  return this.userService.deleteUser(id);
+}
+
 
   @Put('me')
   @ApiOperation({ summary: 'Update current user profile' })
@@ -102,4 +113,57 @@ export class UserController {
   async getUserStats(@Param('id') id: string) {
     return this.userService.getUserStats(id);
   }
+
+
+  @Patch(':id/role')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update user role (Admin only)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        role: {
+          type: 'string',
+          enum: ['USER', 'OWNER', 'ADMIN'],
+          example: 'OWNER',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'User role updated successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body('role') role: UserRole,
+  ) {
+    return this.userService.updateUserRole(id, role);
+  }
+
+  @Patch(':id/status')
+  @Roles(UserRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Toggle user status (Admin only)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        isActive: {
+          type: 'boolean',
+          example: true,
+        },
+      },
+    },
+  })
+
+  
+  @ApiResponse({ status: 200, description: 'User status updated successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async toggleUserStatus(
+    @Param('id') id: string,
+    @Body('isActive') isActive: boolean,
+  ) {
+    return this.userService.toggleUserStatus(id, isActive);
+  }
+
 }

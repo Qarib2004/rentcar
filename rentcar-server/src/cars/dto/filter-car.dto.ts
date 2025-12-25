@@ -16,6 +16,11 @@ export class FilterCarDto {
   @IsString()
   brand?: string;
 
+  @ApiProperty({ required: false, example: 'bmw-x5' })
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
   @ApiProperty({ required: false, example: 'Camry' })
   @IsOptional()
   @IsString()

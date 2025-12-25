@@ -100,14 +100,14 @@ export const useLogout = () => {
       
       socketClient.disconnect()
       
-      navigate(ROUTES.LOGIN)
+      navigate(ROUTES.HOME)
       trackEvent('auth_logout')
     },
     onError: (error: any) => {
       logout()
       queryClient.clear()
       socketClient.disconnect()
-      navigate(ROUTES.LOGIN)
+      navigate(ROUTES.HOME)
       logError(error, { action: 'auth_logout' })
     },
   })
