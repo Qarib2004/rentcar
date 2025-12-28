@@ -18,7 +18,7 @@ services:
 
 
   redis:
-    image: redis:5.0
+    image: redis:7.0
     container_name: car-rental-redis
     restart: always
     ports:

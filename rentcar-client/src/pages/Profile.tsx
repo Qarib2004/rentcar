@@ -152,7 +152,6 @@ export function Profile() {
     }
   }
 
-  const canRequestOwner = profile?.role === UserRole.CLIENT && !ownerRequest
   const hasPendingRequest = ownerRequest?.status === 'PENDING'
   const isOwnerOrAdmin = profile?.role === UserRole.OWNER || profile?.role === UserRole.ADMIN
 

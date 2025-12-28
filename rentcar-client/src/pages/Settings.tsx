@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useChangePassword, useDeactivateAccount } from '@/features/users/hooks/useProfile'
 import { useResendVerification } from '@/features/auth/hooks/useAuth'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -20,10 +19,9 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
-import { ROUTES } from '@/lib/utils/constants'
 
 export function Settings() {
-  const navigate = useNavigate()
+   
   const { user } = useAuthStore()
   const [showPasswords, setShowPasswords] = useState({
     current: false,

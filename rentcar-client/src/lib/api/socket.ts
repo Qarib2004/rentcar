@@ -60,7 +60,6 @@ class SocketClient {
       console.error('Socket error:', error)
     })
 
-    // Обработчики событий для чата
     this.socket.on('message', (data) => {
       console.log('📨 New message:', data)
     })

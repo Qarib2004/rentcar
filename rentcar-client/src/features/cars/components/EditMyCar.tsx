@@ -145,10 +145,8 @@ export default function EditMyCarDialog({ carId, open, onOpenChange }: EditMyCar
   const onSubmit = (data: CarFormValues) => {
     const formData = new FormData()
 
-    // Добавляем обычные поля
     Object.entries(data).forEach(([key, value]) => {
       if (key === 'features') {
-        // Добавляем каждую feature отдельно
         data.features.forEach((feature) => {
           formData.append('features[]', feature)
         })
@@ -157,13 +155,10 @@ export default function EditMyCarDialog({ carId, open, onOpenChange }: EditMyCar
       }
     })
 
-    // Добавляем новые изображения
     newImages.forEach((file) => {
       formData.append('images', file)
     })
 
-    // Если есть удаленные изображения, можно отправить их ID
-    // Или сервер должен понять это по отсутствующим изображениям
 
     updateCar(formData, {
       onSuccess: () => {
@@ -189,7 +184,6 @@ export default function EditMyCarDialog({ carId, open, onOpenChange }: EditMyCar
           <ScrollArea className="max-h-[calc(90vh-120px)] pr-4">
             <Form {...form}>
               <div className="space-y-6">
-                {/* Images */}
                 <div className="space-y-3">
                   <FormLabel>Images</FormLabel>
                   
@@ -242,7 +236,6 @@ export default function EditMyCarDialog({ carId, open, onOpenChange }: EditMyCar
                   </label>
                 </div>
 
-                {/* Category */}
                 <FormField
                   control={form.control}
                   name="categoryId"
@@ -268,7 +261,6 @@ export default function EditMyCarDialog({ carId, open, onOpenChange }: EditMyCar
                   )}
                 />
 
-                {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -347,7 +339,6 @@ export default function EditMyCarDialog({ carId, open, onOpenChange }: EditMyCar
                   />
                 </div>
 
-                {/* Specs */}
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}

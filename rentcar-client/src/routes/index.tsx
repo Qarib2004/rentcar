@@ -31,6 +31,7 @@ import Payment from '@/pages/Payments'
 import BookingsAdmin from '@/pages/BookingsAdmin'
 import About from '@/pages/About'
 import OwnerRequests from '@/features/owner-requests/components/OwnerRequests'
+import VerifyEmail from '@/pages/VerifyEmail'
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.ABOUT,
         element: <About />,
+      },
+      {
+        path: ROUTES.VERIFY_EMAIL,
+        element: <VerifyEmail />,
       },
       {
         path: ROUTES.CARS,

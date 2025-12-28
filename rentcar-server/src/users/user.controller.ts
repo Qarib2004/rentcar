@@ -9,6 +9,7 @@ import {
   Patch,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -17,6 +18,8 @@ import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/cureent-user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RedisSessionGuard } from 'src/auth/guards/redis-session.guard';
 
 @Controller('user')
 export class UserController {
@@ -36,6 +39,7 @@ export class UserController {
   }
 
   @Get('me')
+  @UseGuards(JwtAuthGuard, RedisSessionGuard) 
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Current user profile' })
   async getProfile(@CurrentUser('id') userId: string) {

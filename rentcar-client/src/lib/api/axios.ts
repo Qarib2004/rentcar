@@ -67,7 +67,7 @@ api.interceptors.response.use(
           ROUTES.LOGIN,
           ROUTES.REGISTER,
           ROUTES.FORGOT_PASSWORD,
-          ROUTES.RESET_PASSWORD, // ← Добавили
+          ROUTES.RESET_PASSWORD, 
           ROUTES.HOME,
           ROUTES.ABOUT,
           ROUTES.CARS,

@@ -13,22 +13,22 @@ import { trackEvent } from '@/lib/analytics'
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50 px-4 text-center">
-      <h1 className="text-2xl font-semibold text-gray-900">Что-то пошло не так</h1>
+      <h1 className="text-2xl font-semibold text-gray-900">Something went wrong</h1>
       <p className="text-gray-600 max-w-md">
-        {error.message || 'Не удалось отобразить страницу. Попробуйте обновить страницу.'}
+        {error.message || 'The page could not be displayed. Try refreshing the page.'}
       </p>
       <div className="flex gap-2">
         <button
           onClick={resetErrorBoundary}
           className="px-4 py-2 rounded-md bg-primary text-white font-medium hover:opacity-90 transition-opacity"
         >
-          Повторить попытку
+          Try again
         </button>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition-colors"
         >
-          Обновить страницу
+          Refresh page
         </button>
       </div>
     </div>
@@ -40,7 +40,7 @@ function SuspenseFallback() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-        <p className="text-gray-600">Загружаем интерфейс…</p>
+        <p className="text-gray-600">Loading interface…</p>
       </div>
     </div>
   )

@@ -204,7 +204,6 @@ export default function UsersAdmin() {
           </CardContent>
         </Card>
 
-        {/* Users Table */}
         <Card>
           <CardHeader>
             <CardTitle>
@@ -384,7 +383,6 @@ export default function UsersAdmin() {
                   </Table>
                 </div>
 
-                {/* Pagination */}
                 <div className="flex items-center justify-between mt-6">
                   <p className="text-sm text-gray-600">
                     Showing page {page}
@@ -423,7 +421,6 @@ export default function UsersAdmin() {
           </CardContent>
         </Card>
 
-        {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>

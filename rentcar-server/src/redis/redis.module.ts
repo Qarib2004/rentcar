@@ -12,6 +12,7 @@ import type { RedisClientOptions } from 'redis';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const redisUrl = configService.get<string>('REDIS_URL');
+        console.log('Connecting to Redis:', redisUrl);
 
         if (redisUrl) {
           return {
@@ -21,11 +22,17 @@ import type { RedisClientOptions } from 'redis';
           };
         }
 
+        const host = configService.get<string>('REDIS_HOST') || 'localhost';
+        const port = Number(configService.get<string>('REDIS_PORT') || 6380);
+        const password = configService.get<string>('REDIS_PASSWORD') || undefined;
+
+        console.log('Fallback Redis config:', { host, port, password });
+
         return {
           store: redisStore as unknown,
-          host: configService.get<string>('REDIS_HOST') || 'localhost',
-          port: configService.get<number>('REDIS_PORT') || 6379,
-          password: configService.get<string>('REDIS_PASSWORD') || undefined,
+          host,
+          port,
+          password,
           ttl: 60 * 60,
         };
       },

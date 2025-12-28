@@ -10,6 +10,11 @@ import { socketClient } from '@/lib/api/socket'
 import { trackEvent, logError } from '@/lib/analytics'
 
 import { useEffect } from 'react'
+import queryClient from '@/lib/api/queryClient'
+
+
+
+
 
 export const useCurrentUser = () => {
   const { setUser, setLoading } = useAuthStore()
@@ -17,10 +22,16 @@ export const useCurrentUser = () => {
     queryKey: QUERY_KEYS.AUTH,
     queryFn: authApi.getCurrentUser,
     retry: false,
-    staleTime: Infinity,
+    staleTime: 1000 * 60 * 5, 
+    refetchOnWindowFocus: true,  
   })
 
   useEffect(() => {
+
+    if (query.isLoading) {
+      setLoading(true)
+    }
+
     if (query.data) {
       setUser(query.data)
       setLoading(false)
@@ -115,10 +126,11 @@ export const useLogout = () => {
 
 export const useVerifyEmail = () => {
   const navigate = useNavigate()
-
+  const { updateUser } = useAuthStore()
   return useMutation({
     mutationFn: (token: string) => authApi.verifyEmail(token),
     onSuccess: () => {
+      updateUser({ isVerified: true })
       toast.success('Email verified successfully!')
       navigate(ROUTES.LOGIN)
     },
@@ -130,13 +142,25 @@ export const useVerifyEmail = () => {
 }
 
 export const useResendVerification = () => {
+  const {updateUser} = useAuthStore()
   return useMutation({
     mutationFn: authApi.resendVerificationEmail,
     onSuccess: () => {
       toast.success('Verification email sent! Check your inbox.')
     },
     onError: (error: any) => {
+      
       const message = error?.response?.data?.message || 'Failed to send verification email'
+
+      if (message === 'Email already verified') {
+        updateUser({ isVerified: true }); 
+        
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AUTH });
+        
+        toast.success('Status updated: Email already verified!');
+      } else {
+        toast.error(message || 'Ошибка');
+      }
       toast.error(message)
     },
   })

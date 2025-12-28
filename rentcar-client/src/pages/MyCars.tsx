@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Header from '@/components/layout/Header'
 import { useMyCars, useUpdateCarStatus, useDeleteCar } from '@/features/cars/hooks/useCars'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -245,7 +244,6 @@ export default function MyCars() {
         </div>
       </div>
 
-      {/* Status Change Dialog */}
       <AlertDialog open={statusDialog.open} onOpenChange={(open) => !open && setStatusDialog({ open: false, carId: '', status: '' })}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -261,7 +259,6 @@ export default function MyCars() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, carId: '' })}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -279,7 +276,6 @@ export default function MyCars() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Edit Dialog */}
       {editDialog.open && (
         <EditMyCar
           carId={editDialog.carId}

@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
 
 export const ROUTES = {
   HOME: '/',
+  VERIFY_EMAIL: '/verify-email',
   ABOUT:'/about',
   MyCARS:'/my-cars',
   ADMIN_BOOKINGS: '/dashboard/bookings',
