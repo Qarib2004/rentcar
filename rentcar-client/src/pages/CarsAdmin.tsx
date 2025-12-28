@@ -283,7 +283,7 @@ export default function CarsAdmin() {
                               <DropdownMenuContent align="end" className="w-48">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => navigate(`/cars/${car.id}`)}>
+                                <DropdownMenuItem onClick={() => navigate(`/cars/${car.slug}`)}>
                                   <Eye className="w-4 h-4 mr-2" />
                                   View Details
                                 </DropdownMenuItem>

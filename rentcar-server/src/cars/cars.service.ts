@@ -14,13 +14,14 @@ import { UpdateCarDto } from './dto/update-car.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import slugify from 'slugify';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class CarsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinaryService: CloudinaryService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redisService: RedisService
   ) {}
 
   private async generateUniqueSlug(brand: string, model: string, year: number): Promise<string> {
@@ -252,7 +253,7 @@ export class CarsService {
       throw new NotFoundException(`Car with ID ${id} not found`);
     }
 
-    await this.cacheManager.set(cacheKey, car, 300); 
+    await this.redisService.set(cacheKey, car, 300); 
 
     return car;
   }
@@ -393,7 +394,7 @@ export class CarsService {
       },
     });
 
-    await this.cacheManager.del(`car:${id}`);
+    await this.redisService.delete(`car:${id}`);
 
     return updatedCar;
   }
@@ -456,7 +457,7 @@ export class CarsService {
       where: { id },
     });
 
-    await this.cacheManager.del(`car:${id}`);
+    await this.redisService.delete(`car:${id}`);
 
     return { message: 'Car deleted successfully' };
   }

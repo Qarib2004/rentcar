@@ -45,7 +45,7 @@ const adminNavItems = [
     icon: Users,
   },
   {
-  name:'requets',
+  name:'Requests',
   path:'/dashboard/requests',
   icon:ClipboardList
   }

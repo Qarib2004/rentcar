@@ -25,6 +25,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import type { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +34,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redisService: RedisService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
@@ -96,39 +97,26 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
-   
-  const sessionKey = `user:session:${user.id}`;
-  const sessionData = {
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    accessToken: tokens.accessToken,
-    loginAt: new Date().toISOString(),
-  };
-
-  console.log('🔴 Saving to Redis:', sessionKey);
-  console.log('🔴 Session data:', sessionData);
-
-  try {
-    await this.cacheManager.set(sessionKey, sessionData, 86400);
-    console.log('✅ Successfully saved to Redis');
+    const sessionKey = `user:session:${user.id}`;
+    const sessionData = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      accessToken: tokens.accessToken,
+      loginAt: new Date().toISOString(),
+    };
+  
+  
+    await this.redisService.set(sessionKey, sessionData, 86400);
+  
     
-    const checkData = await this.cacheManager.get(sessionKey);
-    console.log('🔍 Data read back from Redis:', checkData);
-    
-    if (!checkData) {
-      console.error('❌ Data was not saved to Redis!');
-    }
-  } catch (error) {
-    console.error('❌ Redis save error:', error);
-  }
-
-  const refreshKey = `user:refresh:${user.id}`;
-  await this.cacheManager.set(refreshKey, tokens.refreshToken, 7 * 24 * 60 * 60);
-  console.log('🔴 Refresh key saved:', refreshKey);
-
+    const checkData = await this.redisService.get(sessionKey);
+  
+    const refreshKey = `user:refresh:${user.id}`;
+    await this.redisService.set(refreshKey, tokens.refreshToken, 7 * 24 * 60 * 60);
+  
     return {
       ...tokens,
       user: {
@@ -342,11 +330,16 @@ export class AuthService {
 
 
 
-async getSession(userId: string) {
-  const sessionKey = `user:session:${userId}`;
-  return await this.cacheManager.get(sessionKey);
-}
-
+  async getSession(userId: string) {
+    const sessionKey = `user:session:${userId}`;
+    const data = await this.redisService.get(sessionKey);
+    
+    if (!data) {
+      return null;
+    }
+    
+    return typeof data === 'string' ? JSON.parse(data) : data;
+  }
 async validateSession(userId: string, token: string): Promise<boolean> {
   const session: any = await this.getSession(userId);
   
@@ -362,7 +355,7 @@ async updateSessionActivity(userId: string) {
   
   if (session) {
     session.lastActivity = new Date().toISOString();
-    await this.cacheManager.set(`user:session:${userId}`, session, 86400);
+    await this.redisService.set(`user:session:${userId}`, session, 86400);
   }
 }
 

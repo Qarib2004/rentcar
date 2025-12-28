@@ -1,10 +1,11 @@
 import { Injectable, CanActivate, ExecutionContext, Inject, UnauthorizedException } from '@nestjs/common';
 import type { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class RedisSessionGuard implements CanActivate {
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+  constructor(private readonly redisServie:RedisService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -16,7 +17,7 @@ export class RedisSessionGuard implements CanActivate {
     }
 
     const sessionKey = `user:session:${userId}`;
-    const session: any = await this.cacheManager.get(sessionKey);
+    const session: any = await this.redisServie.get(sessionKey);
 
     if (!session) {
       throw new UnauthorizedException('Session expired or invalid');

@@ -4,9 +4,10 @@ import { CarsController } from './cars.controller';
 import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
 import { UploadsModule } from 'src/uploads/uploads.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [UploadsModule],
+  imports: [UploadsModule, RedisModule],
   controllers: [CarsController, CategoriesController],
   providers: [CarsService, CategoriesService],
   exports: [CarsService, CategoriesService],

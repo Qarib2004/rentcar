@@ -163,7 +163,7 @@ export default function MyCars() {
                           </div>
 
                           <div className="flex flex-wrap gap-2">
-                            <Link to={`/cars/${car.id}`}>
+                            <Link to={`/cars/${car.slug}`}>
                               <Button variant="outline" size="sm">
                                 <Eye className="w-4 h-4 mr-2" />
                                 View
