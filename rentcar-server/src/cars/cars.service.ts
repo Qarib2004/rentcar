@@ -90,6 +90,11 @@ export class CarsService {
       },
     });
 
+    const carCacheKey = `cars:${car.id}`;
+    await this.redisService.set(carCacheKey,JSON.stringify(car),3600);
+
+    await this.redisService.delete('cars:list:*')
+
     return car;
   }
 
@@ -207,8 +212,13 @@ export class CarsService {
 
   async findOne(id: string) {
 
-    const cacheKey = `cars:${id}`;
+    const carCacheKey = `cars:${id}`;
+    const cachedCar = await this.redisService.get(carCacheKey)
 
+    if (cachedCar) {
+      console.log('Car loaded from cache:', id);
+      return JSON.parse(cachedCar);
+    }
 
     const car = await this.prisma.car.findUnique({
       where: { id },
@@ -253,7 +263,7 @@ export class CarsService {
       throw new NotFoundException(`Car with ID ${id} not found`);
     }
 
-    await this.redisService.set(cacheKey, car, 300); 
+    await this.redisService.set(carCacheKey, JSON.stringify(car), 3600); 
 
     return car;
   }

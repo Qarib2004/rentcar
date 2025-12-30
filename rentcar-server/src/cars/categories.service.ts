@@ -6,10 +6,13 @@ import {
 import { PrismaService } from 'src/databases/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+             private readonly redis: RedisService
+  ) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
     const existingCategory = await this.prisma.category.findUnique({
@@ -20,9 +23,17 @@ export class CategoriesService {
       throw new ConflictException('Category with this slug already exists');
     }
 
-    return this.prisma.category.create({
+    const category = await this.prisma.category.create({
       data: createCategoryDto,
     });
+
+    const caregoryCacheKey = `categories:${category.id}`
+    await this.redis.set(caregoryCacheKey,JSON.stringify(category),3600)
+
+    await this.redis.delete('categories:all');
+
+
+    return category
   }
 
   async findAll() {
