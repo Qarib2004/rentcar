@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ROUTES } from '@/lib/utils/constants'
+import { Helmet } from 'react-helmet-async'
 
 interface FormData {
   email: string
@@ -60,6 +61,10 @@ export default function Login() {
   }
 
   return (
+    <>
+      <Helmet>
+        <title>Login - RentCar</title>
+      </Helmet>
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
@@ -132,5 +137,6 @@ export default function Login() {
         </form>
       </div>
     </div>
+    </>
   )
 }

@@ -1,4 +1,3 @@
-// src/pages/VerifyEmail.tsx
 import { useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { useVerifyEmail } from '@/features/auth/hooks/useAuth'
@@ -87,6 +86,7 @@ export default function VerifyEmail() {
           </Link>
         </div>
       </div>
+      
     )
   }
 

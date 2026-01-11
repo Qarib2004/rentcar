@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Star,
 } from 'lucide-react'
+import { Helmet } from 'react-helmet-async'
 
 export default function About() {
   const navigate = useNavigate()
@@ -86,7 +87,15 @@ export default function About() {
   ]
 
   return (
+
+
     <>
+
+<Helmet>
+        <title>About - RentCar</title>
+      </Helmet>
+
+
             <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">

@@ -22,6 +22,7 @@ import {
 import { formatPrice, resolveImageUrl } from '@/lib/utils'
 import { ROUTES } from '@/lib/utils/constants'
 import type { Car as CarType } from '@/types'
+import { Helmet } from 'react-helmet-async'
 
 export default function Home() {
   const navigate = useNavigate()
@@ -42,7 +43,9 @@ export default function Home() {
 
   return (
     <>
-      
+        <Helmet>
+        <title>Home - RentCar</title>
+      </Helmet>
       <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">

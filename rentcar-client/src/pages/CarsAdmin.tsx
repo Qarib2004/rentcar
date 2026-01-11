@@ -63,6 +63,7 @@ import {
 } from 'lucide-react'
 import { CarStatus} from '@/types'
 import { formatPrice } from '@/lib/utils'
+import { Helmet } from 'react-helmet-async'
 
 export default function CarsAdmin() {
   const navigate = useNavigate()
@@ -133,6 +134,10 @@ export default function CarsAdmin() {
   }
 
   return (
+    <>
+      <Helmet>
+        <title>Admin - RentCar</title>
+      </Helmet>
     <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -395,5 +400,6 @@ export default function CarsAdmin() {
         </AlertDialog>
       </div>
     </AdminLayout>
+    </>
   )
 }

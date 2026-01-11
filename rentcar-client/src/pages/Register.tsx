@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ROUTES } from '@/lib/utils/constants'
+import { Helmet } from 'react-helmet-async'
 
 interface FormData {
   firstName: string
@@ -92,6 +93,10 @@ export default function Register() {
   }
 
   return (
+    <>
+      <Helmet>
+        <title>Register - RentCar</title>
+      </Helmet>
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
@@ -101,10 +106,8 @@ export default function Register() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
-            {/* First Name & Last Name */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name</Label>
@@ -215,5 +218,6 @@ export default function Register() {
         </form>
       </div>
     </div>
+    </>
   )
 }

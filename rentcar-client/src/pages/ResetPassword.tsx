@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ROUTES } from '@/lib/utils/constants'
+import { Helmet } from 'react-helmet-async'
 
 interface FormData {
   newPassword: string
@@ -93,6 +94,10 @@ export default function ResetPassword() {
   }
 
   return (
+    <>
+      <Helmet>
+        <title>Reset Password - RentCar</title>
+      </Helmet>
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
@@ -146,5 +151,6 @@ export default function ResetPassword() {
         </form>
       </div>
     </div>
+    </>
   )
 }

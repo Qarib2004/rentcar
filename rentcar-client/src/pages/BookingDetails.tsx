@@ -36,6 +36,7 @@ import { formatPrice, resolveImageUrl } from '@/lib/utils'
 import { ROUTES } from '@/lib/utils/constants'
 import { useAuthStore } from '@/store/useAuthStore'
 import { UserRole } from '@/types'
+import { Helmet } from 'react-helmet-async'
 
 export function BookingDetails() {
   const { id } = useParams<{ id: string }>()
@@ -139,6 +140,9 @@ export function BookingDetails() {
 
   return (
     <>
+    <Helmet>
+        <title>Booking details - RentCar</title>
+      </Helmet>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link to={ROUTES.BOOKINGS}>

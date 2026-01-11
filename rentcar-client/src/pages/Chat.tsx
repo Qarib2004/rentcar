@@ -13,6 +13,7 @@ import { getInitials } from '@/lib/utils'
 import { useAuthStore } from '@/store/useAuthStore'
 import { format } from 'date-fns'
 import type { ChatRoom, Message } from '@/types'
+import { Helmet } from 'react-helmet-async'
 
 export function Chat() {
   const { user } = useAuthStore()
@@ -83,6 +84,9 @@ export function Chat() {
 
   return (
     <>
+      <Helmet>
+        <title>Chat - RentCar</title>
+      </Helmet>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">Messages</h1>

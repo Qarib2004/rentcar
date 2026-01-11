@@ -33,6 +33,7 @@ import { User, Mail, Phone, Calendar, Upload, Edit2, Save, X, Crown, CheckCircle
 import { getInitials } from '@/lib/utils'
 import { format } from 'date-fns'
 import { UserRole } from '@/types'
+import { Helmet } from 'react-helmet-async'
 
 export function Profile() {
   const [isEditing, setIsEditing] = useState(false)
@@ -181,6 +182,9 @@ export function Profile() {
 
   return (
     <>
+      <Helmet>
+        <title>Profile - RentCar</title>
+      </Helmet>
           <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>

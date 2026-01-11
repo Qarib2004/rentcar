@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tag, Plus, Edit, Trash2 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { UserRole, type Category } from '@/types'
+import { Helmet } from 'react-helmet-async'
 
 export const initialForm = {
   name: '',
@@ -142,6 +143,9 @@ export default function Categories() {
 
   return (
     <>
+      <Helmet>
+        <title>Categories - RentCar</title>
+      </Helmet>
       <Header />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">

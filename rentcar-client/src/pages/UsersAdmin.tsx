@@ -65,6 +65,7 @@ import {
 } from 'lucide-react'
 import {UserRole } from '@/types'
 import { format } from 'date-fns'
+import { Helmet } from 'react-helmet-async'
 
 export default function UsersAdmin() {
   const navigate = useNavigate()
@@ -141,9 +142,12 @@ export default function UsersAdmin() {
   }
 
   return (
+    <>
+      <Helmet>
+        <title>Admin - RentCar</title>
+      </Helmet>
     <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
@@ -447,5 +451,6 @@ export default function UsersAdmin() {
         </AlertDialog>
       </div>
     </AdminLayout>
+    </>
   )
 }

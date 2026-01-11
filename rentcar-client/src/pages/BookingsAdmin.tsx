@@ -63,6 +63,7 @@ import {
 import { BookingStatus } from '@/types'
 import { formatPrice } from '@/lib/utils'
 import { format } from 'date-fns'
+import { Helmet } from 'react-helmet-async'
 
 export default function BookingsAdmin() {
   const navigate = useNavigate()
@@ -184,7 +185,11 @@ export default function BookingsAdmin() {
   const isActionPending = isConfirming || isCancelling || isCompleting
 
   return (
-    <AdminLayout>
+  <>
+    <Helmet>
+        <title>Admin - RentCar</title>
+      </Helmet>
+  <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -453,5 +458,6 @@ export default function BookingsAdmin() {
         </AlertDialog>
       </div>
     </AdminLayout>
+  </>
   )
 }

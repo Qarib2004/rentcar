@@ -8,6 +8,7 @@ import { Car as CarIcon, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CarsQueryParams } from '@/types/api.types'
+import { Helmet } from 'react-helmet-async'
 
 export function Cars() {
   const [filters, setFilters] = useState<CarsQueryParams>({
@@ -32,6 +33,9 @@ export function Cars() {
 
   return (
     <>
+      <Helmet>
+        <title>Cars - RentCar</title>
+      </Helmet>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">

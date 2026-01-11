@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { format } from 'date-fns'
+import { Helmet } from 'react-helmet-async'
 
 
 
@@ -171,6 +172,9 @@ export default function Payment() {
 
   return (
     <>
+      <Helmet>
+        <title>Payments - RentCar</title>
+      </Helmet>
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <Button

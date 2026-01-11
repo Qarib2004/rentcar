@@ -25,6 +25,7 @@ import {
 import {  resolveImageUrl } from '@/lib/utils'
 import { ROUTES } from '@/lib/utils/constants'
 import { useAuthStore } from '@/store/useAuthStore'
+import { Helmet } from 'react-helmet-async'
 
 export function CarDetails() {
   const { slug } = useParams<{ slug: string }>()
@@ -92,6 +93,9 @@ export function CarDetails() {
 
   return (
     <>
+      <Helmet>
+        <title>Car DFeatails - RentCar</title>
+      </Helmet>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Link to={ROUTES.CARS}>

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { UserRole, type Category } from '@/types'
+import { Helmet } from 'react-helmet-async'
 
 
 const initialCategoryForm = {
@@ -141,6 +142,10 @@ export function Dashboard() {
 
 
   return (
+    <>
+      <Helmet>
+        <title>Admin - RentCar</title>
+      </Helmet>
     <AdminLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           
@@ -302,5 +307,6 @@ export function Dashboard() {
         </div>
     
     </AdminLayout>
+    </>
   )
 }

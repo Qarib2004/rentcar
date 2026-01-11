@@ -34,6 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Car, Upload, X, Plus } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { UserRole, TransmissionType, FuelType } from '@/types'
+import { Helmet } from 'react-helmet-async'
 
 const createCarSchema = z.object({
   categoryId: z.string().uuid('Please select a category'),
@@ -201,6 +202,9 @@ export default function CreateCar() {
 
   return (
     <>
+      <Helmet>
+        <title>Create Car - RentCar</title>
+      </Helmet>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
           <div>
